@@ -1,0 +1,4 @@
+theStrategy
+===========
+
+the strategy game
