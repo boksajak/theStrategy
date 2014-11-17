@@ -10,21 +10,9 @@
 SDL_Window* sdlWindow;
 SDL_GLContext sdlGLContext;
 
-// http://stackoverflow.com/questions/4631292/how-detect-current-screen-resolution
-// Get the horizontal and vertical screen sizes in pixel (of primary monitor)
-void GetDesktopResolution(int& screenWidth, int& screenHeight, int& workAreaWidth, int& workAreaHeight)
-{
-	screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	screenHeight = GetSystemMetrics(SM_CYSCREEN);
+bool Initialize(int windowWidth, int windowHeight) {
 
-	RECT rect;
-	SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, 0);
-
-	workAreaWidth = rect.right;
-	workAreaHeight = rect.bottom;
-}
-
-bool Initialize() {
+	TRACE_WARNING("Initializing..." << std::endl);
 
 	// -------------------------------------------
 	// Initialize SDL 
@@ -37,13 +25,28 @@ bool Initialize() {
 	// Double buffering
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); 
 
+	// Assert HW Accelerated graphics
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
 	// 24-bit Z buffer
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
+	// Get screen resolution
+	SDL_DisplayMode displayMode;
+	if (SDL_GetDesktopDisplayMode(0, &displayMode) != 0) {
+		TRACE_ERROR("SDL_GetDesktopDisplayMode failed: " << SDL_GetError() << std::endl);
+		return false;
+	}
+
+	int screenWidth = displayMode.w;
+	int screenHeight = displayMode.h;
+
+	// Calculate optimal window position on screen
+	int left = (screenWidth - windowWidth - 550) / 3; // 550 - make room for debugging console window
+	int top = (screenHeight - windowHeight) / 3;
+
 	// Create the window 
-	sdlWindow = SDL_CreateWindow("The Strategy Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL); 
+	sdlWindow = SDL_CreateWindow("The Strategy Game", left, top, windowWidth, windowHeight, SDL_WINDOW_SHOWN|SDL_WINDOW_OPENGL); 
 
 	if (!sdlWindow) {
 		TRACE_ERROR("Error while creating SDL window." << std::endl);
@@ -51,6 +54,18 @@ bool Initialize() {
 		return false;
 	}
 
+	// Move console window to nice position right of main window
+#ifdef USE_CONSOLE
+	int borderWidth = GetSystemMetrics(SM_CXSIZEFRAME);
+	int borderHeight = GetSystemMetrics(SM_CYSIZEFRAME);
+	int captionHeight = GetSystemMetrics(SM_CYCAPTION);
+	consoleInst.move(left + windowWidth + borderWidth, top - borderHeight - captionHeight, 550, windowHeight);
+#endif
+
+
+	// -------------------------------------------
+	// Initialize OpenGL 
+	// -------------------------------------------
 	sdlGLContext = SDL_GL_CreateContext(sdlWindow); 
 
 	if (!sdlGLContext) {
@@ -86,7 +101,7 @@ void Render() {
 int main(int argc, char *argv[]){
 
 	// Initialization
-	if (!Initialize()) {
+	if (!Initialize(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
 		return 1;
 	}
 
