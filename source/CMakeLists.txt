@@ -41,7 +41,6 @@ IF(MINGW)
   set(CMAKE_CXX_FLAGS_DEBUG "-g")
 ENDIF()
 
-#find_package(OpenGL)
 find_package(GLM)
 
 
@@ -55,16 +54,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 ################################################################################
 # glew
 ################################################################################
-#set(GLEW_PATH_TO_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../sdk/glew" CACHE PATH "Path to directory containing glew source code.")
-#set(GLEW_BUILD_SHARED OFF CACHE BOOL "Build glew as shared or static library.")
-#if(NOT IS_DIRECTORY ${GLEW_PATH_TO_SOURCE})
-#  message(FATAL_ERROR "Incorrect path to source of GLEW: ${GLEW_PATH_TO_SOURCE}")
-#endif(NOT IS_DIRECTORY ${GLEW_PATH_TO_SOURCE})
-#if(NOT GLEW_BUILD_SHARED)
-#  add_definitions(-DGLEW_STATIC)
-#endif(NOT GLEW_BUILD_SHARED)
-#include_directories(${GLEW_PATH_TO_SOURCE}) # so we can adress glew includes using GL/* format
-#add_subdirectory(${GLEW_PATH_TO_SOURCE} ${CMAKE_CURRENT_BINARY_DIR}/glew)
+set(GLEW_PATH_TO_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../sdk/glew-1.11.0" CACHE PATH "Path to directory containing glew source code.")
+set(GLEW_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/../sdk/glew-1.11.0/include" CACHE PATH "Path to GLEW include headers.")
+set(GLEW_BUILD_SHARED OFF CACHE BOOL "Build glew as shared or static library.")
+if(NOT IS_DIRECTORY ${GLEW_PATH_TO_SOURCE})
+  message(FATAL_ERROR "Incorrect path to source of GLEW: ${GLEW_PATH_TO_SOURCE}")
+endif(NOT IS_DIRECTORY ${GLEW_PATH_TO_SOURCE})
+if(NOT GLEW_BUILD_SHARED)
+  add_definitions(-DGLEW_STATIC)
+endif(NOT GLEW_BUILD_SHARED)
+include_directories(${GLEW_PATH_TO_SOURCE}) # so we can adress glew includes using GL/* format
+add_subdirectory(${GLEW_PATH_TO_SOURCE} ${CMAKE_CURRENT_BINARY_DIR}/glew)
 
 ################################################################################
 # SDL
@@ -78,17 +78,17 @@ else()
   MESSAGE("SDL2 Include Dir: " ${SDL2_INCLUDE_DIR})
   MESSAGE("SDL2 Library: " ${SDL2_LIBRARY})  
 endif (NOT SDL2_FOUND)
+
+MESSAGE("GLEW Include Dir: " ${GLEW_INCLUDE_DIRS})
    
 include_directories(${SDL2_INCLUDE_DIR})
 include_directories(${CMAKE_SOURCE_DIR})
-include_directories(${GLM_INCLUDE_DIRS})
-
-#include_directories(${GLEW_INCLUDE_DIRS})
-#include_directories(${OPENGL_INCLUDE_DIRS})
+include_directories(${GLM_INCLUDE_DIRS}) 
+include_directories(${GLEW_INCLUDE_DIRS})
 
 add_executable(Strategy WIN32 ${CPPS} ${INCS})
-#add_dependencies(Strategy glew)
-#target_link_libraries(Strategy glew ${OPENGL_LIBRARIES})
+add_dependencies(Strategy glew)
+target_link_libraries(Strategy glew)
 target_link_libraries (Strategy ${SDL2_LIBRARY})
 
 # Set target directory for copying. Can refer to target which hasn't been added yet.
