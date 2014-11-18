@@ -23,3 +23,7 @@
 // Include Utils
 #include "Utils\ConsoleBuffer.h"
 #include "Utils\StringBuilder.h"
+
+// Include SDL
+#include "SDL.h"
+

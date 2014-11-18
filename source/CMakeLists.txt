@@ -14,6 +14,16 @@ ENDFOREACH()
 file(GLOB_RECURSE INCS "*.h")
 file(GLOB_RECURSE CPPS "*.cpp")
 
+# Create folders in VS Project
+FOREACH(subdir ${SUBDIRS})
+  FILE(GLOB_RECURSE TEMP_SRCS 
+      RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} 
+      ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/*.cpp 
+      ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/*.h) 
+  
+  SOURCE_GROUP(${subdir} FILES ${TEMP_SRCS}) 
+ENDFOREACH() 
+ 
 # Additional places where to look for Find*.cmake scripts
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/")
 
@@ -104,6 +114,7 @@ endif(MSVC)
 LIST(GET SDL2_LIBRARY -1 SDL2_LIBRARY_LAST)
 get_filename_component(SDL2_LIB_DIR "${SDL2_LIBRARY_LAST}" DIRECTORY)
 
+# Copy dll to target dir
 add_custom_command(TARGET Strategy POST_BUILD   
     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
         "${SDL2_LIB_DIR}/SDL2.dll"    
