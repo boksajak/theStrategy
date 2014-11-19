@@ -1,9 +1,6 @@
 #include "Renderer.h"
-#include "common.h"
+#include "Utils\Geometry.h"
 
-// Include GLEW
-#include "GL/glew.h"
-#include "GL/wglew.h"
 
 namespace gw {
 
@@ -84,6 +81,8 @@ namespace gw {
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);   
 
+		glClearColor(1.0f, 1.0f, 0.6f, 1.0f);
+
 		TRACE_RENDERER("Initialized OpenGL!" << std::endl);
 		return true;
 	}
@@ -95,10 +94,92 @@ namespace gw {
 	}
 
 	void Renderer::Render(const World &world) {
-		glClearColor(1.0f, 1.0f, 0.6f, 1.0f);
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// TODO: Maybe insertion sort (or shell sort) will be faster than priority queue for our purpose
+		// Render objects front to back
+		while (!renderObjects.empty()) {
+			GLRenderObject renderObject = renderObjects.top();
+
+			// TODO: Render
+
+			renderObjects.pop();
+		}
 
 		// Swap buffers
 		SDL_GL_SwapWindow(sdlWindow);
+	}
+
+	void Renderer::RenderTexture(size_t texIdx, glm::vec2 screenCoords, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z) {
+
+		// Culling
+		static const glm::vec4 screenBox(-1.0f, -1.0f, 1.0f, 1.0f);
+		if (!BoxIntersect(glm::vec4(screenCoords.x, screenCoords.y, screenCoords.x + size.x, screenCoords.y + size.y), screenBox)) return;
+
+		// Put object into queue
+		renderObjects.push(GLRenderObject(textures[texIdx], screenCoords, size, uvTopLeft, uvBottomRight, rotation, z));
+	}
+
+	size_t Renderer::UploadTexture(char* bytes, size_t width, size_t height, char bitsPerPixel) {
+
+		GLuint textureId;
+
+		GLenum format;
+		GLenum type;
+
+		switch(bitsPerPixel) {
+		case 8:
+			format = GL_LUMINANCE;
+			type = GL_UNSIGNED_BYTE;
+			break;
+		case 16:
+			format = GL_BGRA;
+			type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+			break;
+		case 24:
+			format = GL_BGR;
+			type = GL_UNSIGNED_BYTE;
+			break;
+		case 32:
+			format = GL_BGRA;
+			type = GL_UNSIGNED_BYTE;
+			break;
+		case 96:
+			format = GL_BGR;
+			type = GL_FLOAT;
+			break;
+		default:
+			TRACE_ERROR("Not supported pixel depth of " << (int)bitsPerPixel << "bpp encountered" << std::endl);
+			return -1;
+		}
+
+		// Load Texture to GPU
+		glGenTextures(1, &textureId);
+
+		glBindTexture(GL_TEXTURE_2D, textureId);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, type, bytes);
+
+		glGenerateMipmap(GL_TEXTURE_2D);   
+
+		// Trilinear filtering
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		// Enable anisotropic filtering if supported 
+		if(glewIsExtensionSupported("GL_EXT_texture_filter_anisotropic")) {
+			GLfloat fLargest;
+
+			// Get largest anisotropy level supported
+			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
+
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, std::min(4.0f, fLargest)); // we want level 4 if possible
+		}
+		
+		textures.push_back(GLTexture(textureId));
+
+		return textures.size() - 1;
 	}
 }

@@ -15,6 +15,7 @@ file(GLOB_RECURSE INCS "*.h")
 file(GLOB_RECURSE CPPS "*.cpp")
 
 # Create folders in VS Project
+
 FOREACH(subdir ${SUBDIRS})
   FILE(GLOB_RECURSE TEMP_SRCS 
       RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} 

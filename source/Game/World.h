@@ -1,5 +1,8 @@
 #pragma once
 
+#include "World\Gui.h"
+
+
 namespace gw {
 
 	class World {
@@ -9,6 +12,8 @@ namespace gw {
 		void Destroy();
 
 	private:
+
+		GUI gui;
 
 	};
 }

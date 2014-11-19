@@ -5,6 +5,10 @@ namespace gw {
 
 	bool World::Initialize() {
 
+		if (!gui.Initialize()) {
+			return false;
+		}
+
 		return true;
 	}
 
