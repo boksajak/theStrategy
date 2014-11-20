@@ -4,9 +4,6 @@
 
 #include "World.h"
 
-// Include SDL
-#include "SDL.h"
-
 // Include GLEW
 #include "GL/glew.h"
 #include "GL/wglew.h"

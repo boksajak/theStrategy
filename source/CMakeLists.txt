@@ -87,7 +87,7 @@ if (NOT SDL2_FOUND)
   MESSAGE (FATAL_ERROR "SDL2 not found!")
 else()
   MESSAGE("SDL2 Include Dir: " ${SDL2_INCLUDE_DIR})
-  MESSAGE("SDL2 Library: " ${SDL2_LIBRARY})  
+  print_list_contents("SDL2 Library: " SDL2_LIBRARY)  
 endif (NOT SDL2_FOUND)
 
 MESSAGE("GLEW Include Dir: " ${GLEW_INCLUDE_DIRS})
@@ -99,6 +99,7 @@ include_directories(${GLEW_INCLUDE_DIRS})
 
 add_executable(Strategy WIN32 ${CPPS} ${INCS})
 add_dependencies(Strategy glew)
+
 target_link_libraries(Strategy glew)
 target_link_libraries (Strategy ${SDL2_LIBRARY})
 

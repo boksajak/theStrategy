@@ -149,7 +149,8 @@ IF(SDL2_LIBRARY_TEMP)
 
 	# For MinGW library
 	IF(MINGW)
-		SET(SDL2_LIBRARY_TEMP ${MINGW32_LIBRARY} ${SDL2_LIBRARY_TEMP})
+    # boksajak: Does not work for me - causes multiple references of main error while linking
+		#SET(SDL2_LIBRARY_TEMP ${MINGW32_LIBRARY} ${SDL2_LIBRARY_TEMP})
 	ENDIF(MINGW)
 
 	# Set the final string here so the GUI reflects the final state.

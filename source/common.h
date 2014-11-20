@@ -27,4 +27,3 @@
 
 // Include SDL
 #include "SDL.h"
-
