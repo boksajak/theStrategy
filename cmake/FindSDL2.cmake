@@ -91,6 +91,12 @@ FIND_LIBRARY(SDL2_LIBRARY_TEMP
 	PATHS ${SDL2_SEARCH_PATHS}
 )
 
+# Store directory where dlls are located
+# Get last entry in SDL libraries list
+LIST(GET SDL2_LIBRARY_TEMP -1 SDL2_LIBRARY_LAST)
+GET_FILENAME_COMPONENT(SDL2_DLL_DIR "${SDL2_LIBRARY_LAST}" DIRECTORY)
+
+
 IF(NOT SDL2_BUILDING_LIBRARY)
 	IF(NOT ${SDL2_INCLUDE_DIR} MATCHES ".framework")
 		# Non-OS X framework versions expect you to also dynamically link to
@@ -149,8 +155,8 @@ IF(SDL2_LIBRARY_TEMP)
 
 	# For MinGW library
 	IF(MINGW)
-    # boksajak: Does not work for me - causes multiple references of main error while linking
-		#SET(SDL2_LIBRARY_TEMP ${MINGW32_LIBRARY} ${SDL2_LIBRARY_TEMP})
+    # boksajak: MinGW moved to end - otherwise causes "multiple references of main" error while linking
+		SET(SDL2_LIBRARY_TEMP ${SDL2_LIBRARY_TEMP} ${MINGW32_LIBRARY} )
 	ENDIF(MINGW)
 
 	# Set the final string here so the GUI reflects the final state.

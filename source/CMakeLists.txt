@@ -112,13 +112,9 @@ if(MSVC)
     post_build_make_dir_link(Strategy ${PROJECT_SOURCE_DIR}/GLSL       ${PROJECT_BINARY_DIR}/shaders)
 endif(MSVC)
 
-# Get last entry in SDL libraries list
-LIST(GET SDL2_LIBRARY -1 SDL2_LIBRARY_LAST)
-get_filename_component(SDL2_LIB_DIR "${SDL2_LIBRARY_LAST}" DIRECTORY)
-
-# Copy dll to target dir
+# Copy SDL dll to target dir
 add_custom_command(TARGET Strategy POST_BUILD   
     COMMAND ${CMAKE_COMMAND} -E copy_if_different  
-        "${SDL2_LIB_DIR}/SDL2.dll"    
+        "${SDL2_DLL_DIR}/SDL2.dll"    
         $<TARGET_FILE_DIR:Strategy>)                
   
