@@ -78,6 +78,13 @@ include_directories(${GLEW_PATH_TO_SOURCE}) # so we can adress glew includes usi
 add_subdirectory(${GLEW_PATH_TO_SOURCE} ${CMAKE_CURRENT_BINARY_DIR}/glew)
 
 ################################################################################
+# gwTGA
+################################################################################
+set(GWTGA_PATH_TO_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../sdk/gwTGA-0.0.0" CACHE PATH "Path to directory containing geTGA source code.")
+set(GWTGA_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/../sdk/gwTGA-0.0.0/include" CACHE PATH "Path to gwTGA include headers.")
+add_subdirectory(${GWTGA_PATH_TO_SOURCE} ${CMAKE_CURRENT_BINARY_DIR}/gwTGA)
+
+################################################################################
 # SDL
 ################################################################################
 Find_Package (SDL2 REQUIRED)
@@ -96,11 +103,14 @@ include_directories(${SDL2_INCLUDE_DIR})
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${GLM_INCLUDE_DIRS}) 
 include_directories(${GLEW_INCLUDE_DIRS})
-
+include_directories(${GWTGA_INCLUDE_DIRS})
+ 
 add_executable(Strategy WIN32 ${CPPS} ${INCS})
 add_dependencies(Strategy glew)
+add_dependencies(Strategy gwTGA)
 
 target_link_libraries(Strategy glew)
+target_link_libraries(Strategy gwTGA)
 target_link_libraries (Strategy ${SDL2_LIBRARY})
 
 # Set target directory for copying. Can refer to target which hasn't been added yet.

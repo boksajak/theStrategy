@@ -8,6 +8,9 @@
 #include "GL/glew.h"
 #include "GL/wglew.h"
 
+// Include SDL
+#include "SDL.h"
+
 namespace gw {
 
 	struct GLTexture {
