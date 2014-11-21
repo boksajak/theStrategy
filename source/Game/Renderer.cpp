@@ -1,5 +1,6 @@
 #include "Renderer.h"
 #include "Utils\Geometry.h"
+#include "Utils\TextFile.h"
 
 
 namespace gw {
@@ -78,16 +79,27 @@ namespace gw {
 
 		TRACE_RENDERER("Context created: " << glGetString(GL_VERSION) << std::endl);
 
+		// GL Settings
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);   
 
 		glClearColor(1.0f, 1.0f, 0.6f, 1.0f);
 
-		TRACE_RENDERER("Initialized OpenGL!" << std::endl);
+		// Load shaders
+		if (!InitializeBillboards()) {
+			return false;
+		}
+
+		TRACE_RENDERER("Initialized OpenGL Renderer!" << std::endl);
 		return true;
 	}
 
 	void Renderer::Destroy(){
+
+		if (billboardProgramId != -1) {
+			glDeleteProgram(billboardProgramId);
+		}
+
 		SDL_GL_DeleteContext(sdlGLContext);
 		SDL_DestroyWindow(sdlWindow);
 		SDL_Quit();
@@ -96,6 +108,13 @@ namespace gw {
 	void Renderer::Render(const World &world) {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		// --------------------------------------------------------------------
+		//    Render billboards
+		// --------------------------------------------------------------------
+
+		glBindVertexArray(vaoBillboard);
+		glUseProgram(billboardProgramId);
 
 		// TODO: Maybe insertion sort (or shell sort) will be faster than priority queue for our purpose
 		// Render objects front to back
@@ -103,15 +122,19 @@ namespace gw {
 			GLRenderObject renderObject = renderObjects.top();
 
 			// TODO: Render
+			//phongShader->Use(world.pointLights, spotLights, world.spotLights, activeMaterial, activeCamera, model->modelMatrix, pass);
+			//glDrawArrays(GL_TRIANGLES, 0, glModel->vertexCount);
 
 			renderObjects.pop();
 		}
+
+		glBindVertexArray(0);
 
 		// Swap buffers
 		SDL_GL_SwapWindow(sdlWindow);
 	}
 
-	void Renderer::RenderTexture(size_t texIdx, glm::vec2 screenCoords, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z) {
+	void Renderer::RenderBillboard(size_t texIdx, glm::vec2 screenCoords, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z) {
 
 		// Culling
 		static const glm::vec4 screenBox(-1.0f, -1.0f, 1.0f, 1.0f);
@@ -177,9 +200,187 @@ namespace gw {
 
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, std::min(4.0f, fLargest)); // we want level 4 if possible
 		}
-		
+
 		textures.push_back(GLTexture(textureId));
 
 		return textures.size() - 1;
 	}
+
+	bool Renderer::InitializeBillboards() {
+
+		// Load shader
+		if (!LoadShader("shaders/billboard", billboardProgramId)) {
+			return false;
+		}
+
+		// ----------------------------------------------------------------
+		// ******** Initialize VBO for drawing model *********
+		// ----------------------------------------------------------------
+
+		// Generate vertex array object (VAO)
+		glGenVertexArrays(1, &vaoBillboard);
+
+		// Start using this VAO
+		glBindVertexArray(vaoBillboard);
+
+		GLuint vertexBuffer;
+		glGenBuffers(1, &vertexBuffer);
+
+		// Start using this buffer
+		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+		//glEnableVertexAttribArray(phongShader->positionLoc); 
+		//glVertexAttribPointer(phongShader->positionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid *)offsetof(Vertex, position));
+
+		//glEnableVertexAttribArray(phongShader->normalLoc); 
+		//glVertexAttribPointer(phongShader->normalLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid *)offsetof(Vertex, normal));
+
+		//glEnableVertexAttribArray(phongShader->texCoordLoc); 
+		//glVertexAttribPointer(phongShader->texCoordLoc, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const GLvoid *)offsetof(Vertex, texCoords));
+
+		//// Copy data to buffer
+		//glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &(vertices[0]), GL_STATIC_DRAW);
+
+		// Cancel VAO binding
+		glBindVertexArray(0);
+
+		return true;
+	}
+
+	void Renderer::printShaderInfoLog(GLuint obj){    
+#ifndef USE_CONSOLE
+		return;
+#endif
+
+		int infologLength = 0;
+		int charsWritten  = 0;    
+		char *infoLog;     
+
+		glGetShaderiv(obj, GL_INFO_LOG_LENGTH,&infologLength);     
+
+		if (infologLength > 0)    {  
+			infoLog = (char *)malloc(infologLength);    
+			glGetShaderInfoLog(obj, infologLength, &charsWritten, infoLog);
+			if (charsWritten>0) TRACE(infoLog << std::endl);        
+			free(infoLog);    
+		}
+	} 
+
+	void Renderer::printProgramInfoLog(GLuint obj){   
+#ifndef USE_CONSOLE
+		return;
+#endif
+		int infologLength = 0;    
+		int charsWritten  = 0; 
+
+		char *infoLog;   
+
+		glGetProgramiv(obj, GL_INFO_LOG_LENGTH,&infologLength);  
+
+		if (infologLength > 0)    {     
+			infoLog = (char *)malloc(infologLength);  
+			glGetProgramInfoLog(obj, infologLength, &charsWritten, infoLog);    
+			if (charsWritten>0) TRACE(infoLog << std::endl);    
+			free(infoLog);   
+		}
+	} 
+
+	bool Renderer::LoadShader(const char* name, GLuint &p) {
+
+		char *vs = NULL,*fs = NULL, *gs = NULL,*gs_eval = NULL,*gs_control = NULL;  
+
+		GLuint v,f,g,g_eval,g_control;    
+
+		TRACE_LOADER("Compiling shader: " << name << std::endl);
+
+		v = glCreateShader(GL_VERTEX_SHADER);  
+		f = glCreateShader(GL_FRAGMENT_SHADER); 
+		g = glCreateShader(GL_GEOMETRY_SHADER); 
+		g_eval = glCreateShader(GL_TESS_EVALUATION_SHADER); 
+		g_control = glCreateShader(GL_TESS_CONTROL_SHADER); 
+
+		StringBuilder sb(1024);
+
+		sb.Append(name, ".vp");
+		TextFile vertexShaderFile(sb.GetString());
+		vertexShaderFile.ReadFile(vs);
+
+		sb.Clear(); 
+		sb.Append(name, ".fp");
+		TextFile fragmentShaderFile(sb.GetString());
+		fragmentShaderFile.ReadFile(fs);
+
+		sb.Clear(); 
+		sb.Append(name, ".geom");
+		TextFile geometryShaderFile(sb.GetString());
+		geometryShaderFile.ReadFile(gs);
+
+		sb.Clear(); 
+		sb.Append(name, "_eval.geom");
+		TextFile evalGeometryShaderFile(sb.GetString());
+		evalGeometryShaderFile.ReadFile(gs_eval);
+
+		sb.Clear(); 
+		sb.Append(name, "_control.geom");
+		TextFile controlGeometryShaderFile(sb.GetString());
+		controlGeometryShaderFile.ReadFile(gs_control);
+
+		if (!vs) {
+			TRACE_ERROR("Could not load shader. Vertex shader file ("<<name<<") not found!" << std::endl);
+			return false;
+		}
+
+		const char * vv = vs;
+		const char * ff = fs; 
+		const char * gg = gs; 
+		const char * gg_eval = gs_eval; 
+		const char * gg_control = gs_control; 
+
+		glShaderSource(v, 1, &vv, NULL);
+		if (fs) glShaderSource(f, 1, &ff,NULL);
+		if (gs) glShaderSource(g, 1, &gg,NULL);
+		if (gs_eval) glShaderSource(g_eval, 1, &gg_eval,NULL);
+		if (gs_control) glShaderSource(g_control, 1, &gg_control,NULL);
+
+		glCompileShader(v);  
+		if (fs) glCompileShader(f);  
+		if (gs) glCompileShader(g);  
+		if (gs_eval) glCompileShader(g_eval);  
+		if (gs_control) glCompileShader(g_control);  
+
+		printShaderInfoLog(v);  
+		if (fs) printShaderInfoLog(f);  
+		if (gs) printShaderInfoLog(g);  
+		if (gs_eval) printShaderInfoLog(g_eval);  
+		if (gs_control) printShaderInfoLog(g_control);  
+
+		p = glCreateProgram();  
+
+		glAttachShader(p,v);   
+		if (fs) glAttachShader(p,f);    
+		if (gs) glAttachShader(p,g);    
+		if (gs_control) glAttachShader(p,g_eval);    
+		if (gs_eval) glAttachShader(p,g_control);   
+
+		glBindFragDataLocation(p, 0, "outputColor");    // TODO: toto asi netreba napisat natvrdo, ale co uz
+
+		glLinkProgram(p);  
+		printProgramInfoLog(p);  
+
+		// Cleanup
+		glDetachShader(p, v);
+		if (fs) glDetachShader(p, f);
+		if (gs) glDetachShader(p, g);
+		if (gs_eval) glDetachShader(p, g_eval);
+		if (gs_control) glDetachShader(p, g_control);
+
+		glDeleteShader(v);
+		if (fs) glDeleteShader(f);
+		if (gs) glDeleteShader(g);
+		if (gs_eval) glDeleteShader(g_eval);
+		if (gs_control) glDeleteShader(g_control);
+
+		return true;
+	}
+
 }

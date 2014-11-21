@@ -53,21 +53,35 @@ namespace gw {
 	class Renderer {
 	public:
 
+		Renderer() : billboardProgramId(-1) { }
+
 		bool Initialize(int windowWidth, int windowHeight);
 		void Destroy();
 
 		void Render(const World &world);
 
-		void RenderTexture(size_t texIdx, glm::vec2 screenCoords, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z);
+		void RenderBillboard(size_t texIdx, glm::vec2 screenCoords, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z);
 		size_t UploadTexture(char* bytes, size_t width, size_t height, char bitsPerPixel);
 
 	private:
 
+		bool InitializeBillboards();
+		bool LoadShader(const char* fileName, GLuint &programId);
+
+		void printShaderInfoLog(GLuint obj);
+		void printProgramInfoLog(GLuint obj);
+
+		// Renderer stuff
+		std::vector<GLTexture> textures;
+		std::priority_queue<GLRenderObject> renderObjects;
+
+		// SDL Stuff
 		SDL_Window* sdlWindow;
 		SDL_GLContext sdlGLContext;
 
-		std::vector<GLTexture> textures;
+		// OpenGL stuff
+		GLuint billboardProgramId;
+		GLuint vaoBillboard;
 
-		std::priority_queue<GLRenderObject> renderObjects;
 	};
 }

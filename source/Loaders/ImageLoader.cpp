@@ -8,7 +8,7 @@ namespace gw {
 		Image loadImage(const char* fileName) {
 			Image result;
 
-			TRACE_LOADER("Loading image " << fileName << "..." << std::endl);
+			TRACE_LOADER("Loading image " << fileName << "...");
 
 			// TODO: only tga support so far
 			if (true) // if TGA
@@ -28,6 +28,7 @@ namespace gw {
 				result.height = tgaImage.height;
 				result.bitsPerPixel = tgaImage.bitsPerPixel;
 
+				TRACE("OK" << std::endl);
 				return result;
 			}
 
