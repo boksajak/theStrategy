@@ -121,7 +121,7 @@ namespace gw {
 			// Render billboard
 			glUniform3fv(billboardShader.screenCoordsLoc, 1, glm::value_ptr(glm::vec3(billboard.topLeftCoord.x, billboard.topLeftCoord.y, billboard.z)));
 			glUniform2fv(billboardShader.sizeLoc, 1, glm::value_ptr(billboard.size));
-			glUniform2fv(billboardShader.topLeftUVLoc, 1, glm::value_ptr(billboard.topLeftCoord));
+			glUniform2fv(billboardShader.topLeftUVLoc, 1, glm::value_ptr(billboard.uvTopLeft));
 			glUniform2fv(billboardShader.bottomRightUVLoc, 1, glm::value_ptr(billboard.uvBottomRight));
 
 			glActiveTexture(GL_TEXTURE10);

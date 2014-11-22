@@ -12,7 +12,7 @@ namespace gw {
 		bool Initialize(Renderer &renderer);
 		void Destroy();
 
-		void Render(Renderer &renderer);
+		void Tick(Renderer &renderer);
 
 	private:
 

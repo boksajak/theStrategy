@@ -16,7 +16,7 @@ namespace gw {
 		
 	}
 
-	void World::Render(Renderer &renderer){
-		gui.Render(renderer);
+	void World::Tick(Renderer &renderer){
+		gui.Tick(renderer);
 	}
 }

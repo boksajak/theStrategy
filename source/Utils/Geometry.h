@@ -3,6 +3,20 @@
 
 namespace gw {
 
+	struct AABB2D {
+		AABB2D() : minPoint(FLT_MAX), maxPoint(FLT_MIN) { }
+
+		AABB2D(glm::vec2 minPoint, glm::vec2 maxPoint) : minPoint(minPoint), maxPoint(maxPoint) { }
+
+		glm::vec2 minPoint;
+		glm::vec2 maxPoint;
+
+		glm::vec2 size() {
+			return maxPoint - minPoint;
+		}
+
+	};
+
 	// thanks to http://www.gamedev.net/topic/619296-ultra-fast-2d-aabb-overlap-test/
 	// TODO: Solution for 16-byte aligned Box class (MMX instructions need that) for both gcc and msvc
 	//struct Box {

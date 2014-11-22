@@ -44,7 +44,7 @@ int main(int argc, char *argv[]){
 			}
 		}
 
-		world.Render(renderer);
+		world.Tick(renderer);
 
 		// Render frame
 		renderer.Render();
