@@ -11,7 +11,7 @@ public:
 	}
 
 	~StringBuilder() {
-		delete string;
+		delete[] string;
 	}
 
 	void Append(const char* newString) {

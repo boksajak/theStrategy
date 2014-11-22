@@ -224,9 +224,6 @@ namespace gw {
 				}
 			}
 
-			// TODO: if we got memory from user, do not delete it here
-			if (colorMap != NULL) delete[] colorMap;
-
 			return resultImage;
 		}
 

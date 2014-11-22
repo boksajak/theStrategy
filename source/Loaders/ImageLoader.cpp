@@ -12,6 +12,9 @@ namespace gw {
 			~TGALoaderListener() {
 				if (imageBuffer != NULL) delete[] imageBuffer;
 				if (colorMapBuffer != NULL) delete[] colorMapBuffer;
+
+				imageBuffer = NULL;
+				imageBuffer = NULL;
 			}
 
 			char* operator() (const unsigned int &bitsPerPixel, const unsigned int &width, const unsigned int &height, tga::TGAMemoryType mType) {
@@ -23,7 +26,7 @@ namespace gw {
 					// image data
 
 					if (imageBufferSize < size) {
-						delete[] imageBuffer;
+						if (imageBuffer != NULL) delete[] imageBuffer;
 						imageBuffer = new char[size];
 						imageBufferSize = size;
 					}
@@ -33,7 +36,7 @@ namespace gw {
 					// color map
 
 					if (colorMapBufferSize < size) {
-						delete[] imageBuffer;
+						if (colorMapBuffer != NULL) delete[] colorMapBuffer;
 						colorMapBuffer = new char[size];
 						colorMapBufferSize = size;
 					}
@@ -81,5 +84,6 @@ namespace gw {
 			// be sure to load image by specialized format loader, or return error
 			assert(false);
 		}
+
 	}
 }
