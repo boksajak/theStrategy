@@ -7,6 +7,9 @@ include(../cmake/macros.cmake)
 
 SUBDIRLIST(SUBDIRS ${CMAKE_SOURCE_DIR})
 
+# Add project subdirs
+# Skip folder with shaders
+LIST(REMOVE_ITEM SUBDIRS "GLSL")
 FOREACH(subdir ${SUBDIRS})
     ADD_SUBDIRECTORY(${subdir})
 ENDFOREACH()
@@ -15,7 +18,7 @@ file(GLOB_RECURSE INCS "*.h")
 file(GLOB_RECURSE CPPS "*.cpp")
 
 # Create folders in VS Project
-
+SOURCE_GROUP(GLSL FILES ${GLSL_SRCS})
 FOREACH(subdir ${SUBDIRS})
   FILE(GLOB_RECURSE TEMP_SRCS 
       RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} 
@@ -23,7 +26,19 @@ FOREACH(subdir ${SUBDIRS})
       ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/*.h) 
   
   SOURCE_GROUP(${subdir} FILES ${TEMP_SRCS}) 
-ENDFOREACH() 
+ENDFOREACH()  
+
+# Add also GLSL folder (removed in subdirs list)
+file(GLOB_RECURSE GLSL_SRCS
+     RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+     ${CMAKE_CURRENT_SOURCE_DIR}/GLSL/*.vp
+     ${CMAKE_CURRENT_SOURCE_DIR}/GLSL/*.fp
+     ${CMAKE_CURRENT_SOURCE_DIR}/GLSL/*.geom
+     ${CMAKE_CURRENT_SOURCE_DIR}/GLSL/*._eval.geom
+     ${CMAKE_CURRENT_SOURCE_DIR}/GLSL/*._control.geom)
+
+print_list_contents("Shaders :" GLSL_SRCS)          
+
  
 # Additional places where to look for Find*.cmake scripts
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/")
