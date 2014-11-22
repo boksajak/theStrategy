@@ -96,16 +96,12 @@ namespace gw {
 
 	void Renderer::Destroy(){
 
-		if (billboardProgramId != -1) {
-			glDeleteProgram(billboardProgramId);
-		}
-
 		SDL_GL_DeleteContext(sdlGLContext);
 		SDL_DestroyWindow(sdlWindow);
 		SDL_Quit();
 	}
 
-	void Renderer::Render(const World &world) {
+	void Renderer::Render() {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
@@ -114,18 +110,27 @@ namespace gw {
 		// --------------------------------------------------------------------
 
 		glBindVertexArray(vaoBillboard);
-		glUseProgram(billboardProgramId);
+		glUseProgram(billboardShader.programId);
 
 		// TODO: Maybe insertion sort (or shell sort) will be faster than priority queue for our purpose
-		// Render objects front to back
-		while (!renderObjects.empty()) {
-			GLRenderObject renderObject = renderObjects.top();
+		// Render opaque objects front to back to minimize overdraw
+		// Render transparent objects back to front
+		while (!billboards.empty()) {
+			const GLBillboard &billboard = billboards.top();
 
-			// TODO: Render
-			//phongShader->Use(world.pointLights, spotLights, world.spotLights, activeMaterial, activeCamera, model->modelMatrix, pass);
-			//glDrawArrays(GL_TRIANGLES, 0, glModel->vertexCount);
+			// Render billboard
+			glUniform3fv(billboardShader.screenCoordsLoc, 1, glm::value_ptr(glm::vec3(billboard.topLeftCoord.x, billboard.topLeftCoord.y, billboard.z)));
+			glUniform2fv(billboardShader.sizeLoc, 1, glm::value_ptr(billboard.size));
+			glUniform2fv(billboardShader.topLeftUVLoc, 1, glm::value_ptr(billboard.topLeftCoord));
+			glUniform2fv(billboardShader.bottomRightUVLoc, 1, glm::value_ptr(billboard.uvBottomRight));
 
-			renderObjects.pop();
+			glActiveTexture(GL_TEXTURE10);
+			glBindTexture(GL_TEXTURE_2D, billboard.texture.textureId);
+			glUniform1i(billboardShader.textureLoc, 10);
+
+			glDrawArrays(GL_POINTS, 0, 1);
+
+			billboards.pop();
 		}
 
 		glBindVertexArray(0);
@@ -138,10 +143,10 @@ namespace gw {
 
 		// Culling
 		static const glm::vec4 screenBox(-1.0f, -1.0f, 1.0f, 1.0f);
-		if (!BoxIntersect(glm::vec4(screenCoords.x, screenCoords.y, screenCoords.x + size.x, screenCoords.y + size.y), screenBox)) return;
+		if (!BoxIntersect(glm::vec4(screenCoords.x, screenCoords.y, screenCoords.x + size.x, screenCoords.y + size.y), screenBox)) return; 
 
-		// Put object into queue
-		renderObjects.push(GLRenderObject(textures[texIdx], screenCoords, size, uvTopLeft, uvBottomRight, rotation, z));
+		// Put object into render queue
+ 		billboards.push(GLBillboard(textures[texIdx], screenCoords, size, uvTopLeft, uvBottomRight, rotation, z)); 
 	}
 
 	size_t Renderer::UploadTexture(char* bytes, size_t width, size_t height, char bitsPerPixel) {
@@ -209,10 +214,17 @@ namespace gw {
 	bool Renderer::InitializeBillboards() {
 
 		// Load shader
-		if (!LoadShader("shaders/billboard", billboardProgramId)) {
+		if (!LoadShader("shaders/billboard", billboardShader.programId)) {
 			return false;
 		}
 
+		// Shader attributes
+		billboardShader.screenCoordsLoc = glGetUniformLocation(billboardShader.programId, "screenCoords");
+		billboardShader.sizeLoc = glGetUniformLocation(billboardShader.programId, "size");
+		billboardShader.topLeftUVLoc = glGetUniformLocation(billboardShader.programId, "topLeftUV");
+		billboardShader.bottomRightUVLoc = glGetUniformLocation(billboardShader.programId, "bottomRightUV");
+		billboardShader.textureLoc = glGetUniformLocation(billboardShader.programId, "bbTexture");
+		
 		// ----------------------------------------------------------------
 		// ******** Initialize VBO for drawing model *********
 		// ----------------------------------------------------------------

@@ -1,8 +1,21 @@
 #version 330
 
-uniform mat4 viewMatrix, projMatrix, modelMatrix;
+uniform vec3 screenCoords;
+uniform vec2 size;
+uniform vec2 topLeftUV;
+uniform vec2 bottomRightUV;
 
+out BillboardData { 
+        vec2 size;
+		vec2 topLeftUV;
+		vec2 bottomRightUV;
+} billboardData; 
 
 void main(){
-   
+    billboardData.size = size;
+    billboardData.topLeftUV = topLeftUV;
+    billboardData.bottomRightUV = bottomRightUV;
+// TODO: Make sure that screenCoords is position of top left corner...
+// And also whether z follows "(less is closer to viewer)"
+    gl_Position = vec4(screenCoords, 1);
 }

@@ -3,9 +3,9 @@
 
 namespace gw {
 
-	bool World::Initialize() {
+	bool World::Initialize(Renderer &renderer) {
 
-		if (!gui.Initialize()) {
+		if (!gui.Initialize(renderer)) {
 			return false;
 		}
 
@@ -13,6 +13,10 @@ namespace gw {
 	}
 
 	void World::Destroy(){
+		
+	}
 
+	void World::Render(Renderer &renderer){
+		gui.Render(renderer);
 	}
 }

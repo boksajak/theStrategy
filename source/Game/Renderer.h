@@ -2,8 +2,6 @@
 #include "common.h"
 #include "glm.h"
 
-#include "World.h"
-
 // Include GLEW
 #include "GL/glew.h"
 #include "GL/wglew.h"
@@ -18,10 +16,10 @@ namespace gw {
 
 		GLuint textureId;
 	};
+	
+	struct GLBillboard {
 
-	struct GLRenderObject {
-
-		GLRenderObject(GLTexture texture, glm::vec2 topLeftCoord, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z) : texture(texture),
+		GLBillboard(GLTexture texture, glm::vec2 topLeftCoord, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z) : texture(texture),
 		topLeftCoord(topLeftCoord), size(size), uvTopLeft(uvTopLeft), uvBottomRight(uvBottomRight), rotation(rotation), z(z) {}
 
 		// texture to use
@@ -46,21 +44,40 @@ namespace gw {
 		float z;
 	};
 
-	// Comparer for Render objects
-	inline bool operator<(const GLRenderObject& a, const GLRenderObject& b){ return a.z < b.z; }
+	// Comparer for Billboards
+	inline bool operator<(const GLBillboard& a, const GLBillboard& b){ return a.z < b.z; }
 
+	struct BillboardShader {
+
+		BillboardShader() : programId(-1) {}
+
+		~BillboardShader() {
+			if (programId != -1) {
+				glDeleteProgram(programId);
+			}
+		}
+
+		GLuint programId;
+
+		GLuint screenCoordsLoc;
+		GLuint sizeLoc;
+		GLuint topLeftUVLoc;
+		GLuint bottomRightUVLoc;
+
+		GLuint textureLoc;
+	};
 
 	class Renderer {
 	public:
 
-		Renderer() : billboardProgramId(-1) { }
+		Renderer() { }
 
 		bool Initialize(int windowWidth, int windowHeight);
 		void Destroy();
 
-		void Render(const World &world);
-
+		void Render();
 		void RenderBillboard(size_t texIdx, glm::vec2 screenCoords, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z);
+
 		size_t UploadTexture(char* bytes, size_t width, size_t height, char bitsPerPixel);
 
 	private:
@@ -73,15 +90,15 @@ namespace gw {
 
 		// Renderer stuff
 		std::vector<GLTexture> textures;
-		std::priority_queue<GLRenderObject> renderObjects;
+		std::priority_queue<GLBillboard> billboards;
 
 		// SDL Stuff
 		SDL_Window* sdlWindow;
 		SDL_GLContext sdlGLContext;
 
 		// OpenGL stuff
-		GLuint billboardProgramId;
 		GLuint vaoBillboard;
+		BillboardShader billboardShader;
 
 	};
 }

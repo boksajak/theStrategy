@@ -14,15 +14,15 @@ int main(int argc, char *argv[]){
 
 	// Initialization
 	TRACE_WARNING("Initializing..." << std::endl);
-
-	if (!world.Initialize()) {
-		TRACE_ERROR("Could not initialize World, ending...");
-		return 1;
-	}
-
+	
 	if (!renderer.Initialize(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
 		TRACE_ERROR("Could not initialize Renderer, ending...");
 		return 2;
+	}
+
+	if (!world.Initialize(renderer)) {
+		TRACE_ERROR("Could not initialize World, ending...");
+		return 1;
 	}
 
 	if (!game.Initialize()) {
@@ -44,14 +44,16 @@ int main(int argc, char *argv[]){
 			}
 		}
 
-		// Render
-		renderer.Render(world);
+		world.Render(renderer);
+
+		// Render frame
+		renderer.Render();
 	} 
 
 	// Cleanup
 	game.Destroy();
-	renderer.Destroy();
 	world.Destroy();
+	renderer.Destroy();
 
 	return 0;
 }
