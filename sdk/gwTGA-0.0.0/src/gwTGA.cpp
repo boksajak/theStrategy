@@ -8,6 +8,12 @@ namespace gw {
 
 		TGAImage LoadTgaFromFile(char* fileName) {
 
+			TGALoaderListener listener;
+			return LoadTgaFromFile(fileName, &listener);
+		}
+
+		TGAImage LoadTgaFromFile(char* fileName, ITGALoaderListener* listener) {
+
 			TGAImage result;
 
 			std::ifstream fileStream;
@@ -18,8 +24,7 @@ namespace gw {
 				return result;
 			}
 
-			TGALoaderListener listener;
-			result = LoadTga(fileStream, &listener);
+			result = LoadTga(fileStream, listener);
 
 			fileStream.close();
 
