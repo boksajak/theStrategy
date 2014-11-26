@@ -45,7 +45,7 @@ namespace gw {
 	};
 
 	// Comparer for Billboards
-	inline bool operator<(const GLBillboard& a, const GLBillboard& b){ return a.z < b.z; }
+	inline bool operator<(const GLBillboard& a, const GLBillboard& b){ return a.z > b.z; }
 
 	struct BillboardShader {
 

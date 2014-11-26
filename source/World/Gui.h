@@ -1,5 +1,6 @@
 #pragma once
 #include "Game\Renderer.h"
+#include "Game\Input.h"
 #include "World\Button.h"
 
 namespace gw {
@@ -9,7 +10,7 @@ namespace gw {
 
 		bool Initialize(Renderer &renderer);
 
-		void Tick(Renderer &renderer);
+		void Tick(Renderer &renderer, Input &input);
 
 	private:
 		size_t inactiveTexID;

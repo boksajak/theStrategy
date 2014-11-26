@@ -1,4 +1,5 @@
 #pragma once
+#include "glm.h"
 
 namespace gw {
 	
@@ -6,8 +7,7 @@ namespace gw {
 		int x;
 		int y;
 
-		float fx;
-		float fy;
+		glm::vec2 position;
 
 		float wheelDelta;
 

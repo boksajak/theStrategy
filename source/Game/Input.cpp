@@ -23,8 +23,8 @@ namespace gw {
 		Uint8 sdlMouseState = SDL_GetMouseState(&state.mouse.x, &state.mouse.y);
 
 		// Calculate normalized mouse position
-		state.mouse.fx = (float) state.mouse.x / (screenWidth - 1.0f);
-		state.mouse.fy = (float) state.mouse.y / (screenHeight - 1.0f);
+		state.mouse.position.x = (float) state.mouse.x / (screenWidth - 1.0f);
+		state.mouse.position.y = (float) state.mouse.y / (screenHeight - 1.0f);
 
 		// Reset click "events"
 		state.mouse.leftClick = false;

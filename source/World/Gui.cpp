@@ -12,13 +12,13 @@ namespace gw {
 		loaders::Image img;
 
 		// Load inactive texture
-		img = loaders::loadImage("assets/mandrill.tga");
+		img = loaders::loadImage("assets/mandrill_bw.tga");
 		
 		inactiveTexID = renderer.UploadTexture(img.bytes, img.width, img.height, img.bitsPerPixel);
 		if (inactiveTexID == -1) return false;
 
 		// Load active texture
-		img = loaders::loadImage("assets/mandrill.tga");
+		img = loaders::loadImage("assets/mandrill_cr.tga");
 		
 		activeTexID = renderer.UploadTexture(img.bytes, img.width, img.height, img.bitsPerPixel);
 		if (activeTexID == -1) return false;
@@ -32,19 +32,18 @@ namespace gw {
 		// -----------------------------------------------------------
 		//  Initialize buttons
 		// -----------------------------------------------------------
-		okBtn.Initialize(inactiveTexID, overTexID, activeTexID, AABB2D(glm::vec2(0.2f), glm::vec2(0.3f)));
+		okBtn.Initialize(inactiveTexID, overTexID, activeTexID, AABB2D(glm::vec2(0.1f), glm::vec2(0.4f)));
 
 		return true;
 	}
 
-	void GUI::Tick(Renderer &renderer) {
+	void GUI::Tick(Renderer &renderer, Input &input) {
 
 		// Render GUI
-		renderer.RenderBillboard(inactiveTexID, glm::vec2(-1.0f, -1.0f), glm::vec2(2.0f, 2.0f), glm::vec2(0), glm::vec2(1), 0, -1);  
-		//renderer.RenderBillboard(inactiveTexID, glm::vec2(0, 0), glm::vec2(0.4f, 0.4f), glm::vec2(0), glm::vec2(1), 0, -1);  
+		renderer.RenderBillboard(inactiveTexID, glm::vec2(-1.0f, -1.0f), glm::vec2(2.0f, 2.0f), glm::vec2(0), glm::vec2(1), 0, -0.5f);  
 
 		// Render Buttons
-		okBtn.Tick(renderer);
+		okBtn.Tick(renderer, input);
 	}
 
 

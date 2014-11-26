@@ -57,7 +57,7 @@ int main(int argc, char *argv[]){
 		input.Tick();
 
 		// Update game world
-		world.Tick(renderer);
+		world.Tick(renderer, input);
 
 		// Render frame
 		renderer.Render();

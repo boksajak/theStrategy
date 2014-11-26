@@ -1,5 +1,6 @@
 #pragma once
 #include "Game\Renderer.h"
+#include "Game\Input.h"
 #include "Utils\Geometry.h"
 
 namespace gw {
@@ -11,7 +12,7 @@ namespace gw {
 
 		bool Initialize(size_t upTexID, size_t overTexID, size_t downTexID, AABB2D region);
 
-		void Tick(Renderer &renderer);
+		void Tick(Renderer &renderer, Input &input);
 
 	private:
 		size_t upTexID;

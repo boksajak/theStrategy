@@ -30,7 +30,12 @@ namespace gw {
 	//	float v2[4];
 	//} __attribute__ ((aligned (16)));
 
+	// Point-AABB
+	inline bool BoxIntersect(const glm::vec2 &p, const AABB2D &aabb) {
+		return (p.x > aabb.minPoint.x && p.x < aabb.maxPoint.x && p.y > aabb.minPoint.y && p.y < aabb.maxPoint.y);
+	}
 
+		// AABB-AABB
 	inline bool BoxIntersect(const glm::vec4 &a, const glm::vec4 &b) {
 		// Returns true if rectangles a and b overlap
 		//		a.x - xMin		b.x - xMin
