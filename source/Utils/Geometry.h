@@ -46,6 +46,7 @@ namespace gw {
 		//  - avoid conversion to box shen calling this function
 		//  - what about AVX instrcutions
 
+		// return !((b.z<a.x || b.x>a.z) || (b.w<a.y || b.y>a.w))
 		__m128 min = _mm_set_ps(a.x, b.x, a.y, b.y);
 		__m128 max = _mm_set_ps(b.z, a.z, b.w, a.w);
 		__m128 cmp = _mm_cmple_ps(min, max);

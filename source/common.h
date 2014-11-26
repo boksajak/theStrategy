@@ -3,7 +3,6 @@
 #define DEFAULT_WIDTH 800
 #define DEFAULT_HEIGHT 600
 
-#include <windows.h>
 #include <assert.h>
 #include <stdint.h>
 #include <malloc.h>
