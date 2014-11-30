@@ -9,22 +9,22 @@ namespace gw {
 		// -----------------------------------------------------------
 		//  Load GUI textures
 		// -----------------------------------------------------------
-		loaders::Image img;
+		Image img;
 
 		// Load inactive texture
-		img = loaders::loadImage("assets/mandrill_bw.tga");
+		img = loaders::loadImage("assets/mandrill_bw.tga", true);
 		
 		inactiveTexID = renderer.UploadTexture(img.bytes, img.width, img.height, img.bitsPerPixel);
 		if (inactiveTexID == -1) return false;
 
 		// Load active texture
-		img = loaders::loadImage("assets/mandrill_cr.tga");
+		img = loaders::loadImage("assets/mandrill_cr.tga", true);
 		
 		activeTexID = renderer.UploadTexture(img.bytes, img.width, img.height, img.bitsPerPixel);
 		if (activeTexID == -1) return false;
 
 		// Load over texture
-		img = loaders::loadImage("assets/mandrill.tga");
+		img = loaders::loadImage("assets/mandrill.tga", true);
 		
 		overTexID = renderer.UploadTexture(img.bytes, img.width, img.height, img.bitsPerPixel);
 		if (overTexID == -1) return false;

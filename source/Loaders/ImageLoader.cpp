@@ -8,7 +8,8 @@ namespace gw {
 		class TGALoaderListener : public tga::ITGALoaderListener {
 		public:
 
-			TGALoaderListener() : imageBuffer(NULL), colorMapBuffer(NULL), imageBufferSize(0), colorMapBufferSize(0) { }
+			TGALoaderListener() : imageBuffer(NULL), colorMapBuffer(NULL), imageBufferSize(0), colorMapBufferSize(0), useBuffer(true) { }
+
 			~TGALoaderListener() {
 				if (imageBuffer != NULL) delete[] imageBuffer;
 				if (colorMapBuffer != NULL) delete[] colorMapBuffer;
@@ -24,6 +25,8 @@ namespace gw {
 
 				if (mType == tga::GWTGA_IMAGE_DATA) {
 					// image data
+
+					if (!useBuffer) return new char[size];
 
 					if (imageBufferSize < size) {
 						if (imageBuffer != NULL) delete[] imageBuffer;
@@ -44,7 +47,14 @@ namespace gw {
 					return colorMapBuffer;
 				}
 			}
+
+			void setUseBuffer(bool use) {
+				useBuffer = use;
+			}
+
 		private:
+
+			bool useBuffer;
 
 			char* imageBuffer;
 			size_t imageBufferSize;
@@ -55,6 +65,10 @@ namespace gw {
 		TGALoaderListener tgaLoaderListener;
 
 		Image loadImage(const char* fileName) {
+			return loadImage(fileName, false);
+		}
+
+		Image loadImage(const char* fileName, bool useBuffer) {
 			Image result;
 
 			TRACE_LOADER("Loading image " << fileName << "...");
@@ -62,6 +76,9 @@ namespace gw {
 			// TODO: only tga support so far
 			if (true) // if TGA
 			{
+				// TODO: Test memory leaks on usebuffer true/false
+				tgaLoaderListener.setUseBuffer(useBuffer);
+
 				tga::TGAImage tgaImage = tga::LoadTga((char*) fileName, &tgaLoaderListener);
 
 				if (tgaImage.hasError()) {
