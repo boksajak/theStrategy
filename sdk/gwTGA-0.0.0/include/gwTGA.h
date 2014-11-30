@@ -11,9 +11,7 @@
 //----------------------------------------------------------------------------------------
 #pragma once
 
-#include <stdio.h>
 #include <iostream>
-#include <fstream>  
 #include <stdint.h>
 
 namespace gw {          
@@ -36,6 +34,13 @@ namespace gw {
 			GWTGA_UNSUPPORTED_PIXEL_DEPTH
 		};
 
+		enum TGAOptions {
+			GWTGA_OPTIONS_NONE = 0,
+			GWTGA_RETURN_COLOR_MAP = 1,
+			GWTGA_FLIP_VERTICALLY = 2,
+			GWTGA_FLPI_HORIZONTALLY = 4
+		};
+
 		enum TGAColorType {
 			GWTGA_UNKNOWN = 0,
 			GWTGA_GREYSCALE,
@@ -53,30 +58,54 @@ namespace gw {
 
 		}; 
 
+		struct TGAColorMap {
+			char* bytes;
+			unsigned int length;
+			unsigned char bitsPerPixel;
+		};
+
 		struct TGAImage {
 
-			TGAImage() :bytes(NULL), width(0), height(0), bitsPerPixel(0), attributeBitsPerPixel(0), origin(GWTGA_UNDEFINED), error(GWTGA_NONE), colorType(GWTGA_UNKNOWN), colorPaletteBytes(NULL), colorPaletteBPP(0), colorMapLength(0) { }
+			TGAImage() :bytes(NULL), width(0), height(0), bitsPerPixel(0), attributeBitsPerPixel(0), origin(GWTGA_UNDEFINED), error(GWTGA_NONE), colorType(GWTGA_UNKNOWN) {
+				colorMap.bitsPerPixel = 0;
+				colorMap.length = 0;
+				colorMap.bytes = NULL;
+			}
 
 			char*			bytes;
+			
 			unsigned int	width;
 			unsigned int	height;
 			unsigned char	bitsPerPixel;
+
 			unsigned char	attributeBitsPerPixel;
+			
 			TGAImageOrigin	origin;
+			unsigned int	xOrigin;
+			unsigned int	yOrigin;
+
 			TGAError		error;
 			TGAColorType	colorType;
-			char*			colorPaletteBytes;
-			unsigned char	colorPaletteBPP; //< TODO: change value with bitsPerPixel when colorMap is present???
-			unsigned int	colorMapLength;
 
-			//TGAFormat pixelFormat;
+			TGAColorMap		colorMap;
+
+			bool hasError() { return error != GWTGA_NONE; }
 		};
 
-		TGAImage LoadTgaFromFile(char* fileName);
+		TGAImage LoadTga(char* fileName);
 		TGAImage LoadTga(std::istream &stream);
 
-		TGAImage LoadTgaFromFile(char* fileName, ITGALoaderListener* listener);
+		TGAImage LoadTga(char* fileName, ITGALoaderListener* listener);
 		TGAImage LoadTga(std::istream &stream, ITGALoaderListener* listener);
+
+		TGAImage LoadTga(char* fileName, TGAOptions options);
+		TGAImage LoadTga(std::istream &stream, TGAOptions options);
+
+		TGAImage LoadTga(char* fileName, ITGALoaderListener* listener, TGAOptions options);
+		TGAImage LoadTga(std::istream &stream, ITGALoaderListener* listener, TGAOptions options);
+
+		TGAError SaveTga(char* fileName, unsigned int width, unsigned int height, unsigned char bitsPerPixel, char* pixels, TGAColorType colorType, TGAImageOrigin origin, unsigned int xOrigin, unsigned int yOrigin);
+		TGAError SaveTga(std::ostream &stream, unsigned int width, unsigned int height, unsigned char bitsPerPixel, char* pixels, TGAColorType colorType, TGAImageOrigin origin, unsigned int xOrigin, unsigned int yOrigin);
 
 		namespace details {
 			struct TGAColorMapSpec {
@@ -139,13 +168,8 @@ namespace gw {
 
 			class TGALoaderListener : public ITGALoaderListener {
 			public: 
-				char* operator()(const unsigned int &bitsPerPixel, const unsigned int &width, const unsigned int &height, TGAMemoryType mType) {						if (mType == GWTGA_IMAGE_DATA) {
-						return new char[(bitsPerPixel / 8) * (height * width)];
-					} else {
-						return new char[(bitsPerPixel / 8) * (height * width)];
-					}
-				}
-
+				char* operator()(const unsigned int &bitsPerPixel, const unsigned int &width, const unsigned int &height, TGAMemoryType mType);
+				void release(char* bytes);
 			};
 
 			typedef void(*fetchPixelFunc)(void* target, void* input, size_t bytesPerInputPixel, char* colorMap, size_t bytesPerOutputPixel);
@@ -160,6 +184,7 @@ namespace gw {
 			template<fetchPixelFunc, fetchPixelsFunc>
 			bool decompressRLE(char* target, size_t pixelsNumber, size_t bytesPerInputPixel, std::istream &stream, char* colorMap, size_t bytesPerOutputPixel);
 
+			void cleanupColorMap(TGALoaderListener* listener, TGAImage &image);
 		}
 	} 
 }

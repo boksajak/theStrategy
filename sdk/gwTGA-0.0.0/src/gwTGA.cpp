@@ -1,19 +1,34 @@
 #include "gwTGA.h"
 #include <cstring> // memcpy
+#include <fstream>  
 
 namespace gw {          
 	namespace tga {
 		
 		using namespace details;
 
-		TGAImage LoadTgaFromFile(char* fileName) {
-
-			TGALoaderListener listener;
-			return LoadTgaFromFile(fileName, &listener);
+		TGAImage LoadTga(char* fileName) {
+			return LoadTga(fileName, GWTGA_OPTIONS_NONE);
 		}
 
-		TGAImage LoadTgaFromFile(char* fileName, ITGALoaderListener* listener) {
+		TGAImage LoadTga(char* fileName, TGAOptions options) {
+			TGALoaderListener listener;
+			TGAImage resultImage = LoadTga(fileName, &listener);
 
+			if (options & GWTGA_RETURN_COLOR_MAP == 0) {
+				// Deallocate memory for color map allocated internally (if user does not request returning of color map)
+				cleanupColorMap(&listener, resultImage);
+			}
+
+			return resultImage;
+		}
+
+		TGAImage LoadTga(char* fileName, ITGALoaderListener* listener) {
+			return LoadTga(fileName, listener, GWTGA_OPTIONS_NONE);
+		}
+
+		TGAImage LoadTga(char* fileName, ITGALoaderListener* listener, TGAOptions options) 
+		{
 			TGAImage result;
 
 			std::ifstream fileStream;
@@ -24,14 +39,30 @@ namespace gw {
 				return result;
 			}
 
-			result = LoadTga(fileStream, listener);
+			result = LoadTga(fileStream, listener, options);
 
 			fileStream.close();
 
 			return result;
+	}
+
+		TGAImage LoadTga(std::istream &stream) {
+			return LoadTga(stream, GWTGA_OPTIONS_NONE);
 		}
 
-		TGAImage LoadTga(std::istream &stream, ITGALoaderListener* listener) {
+		TGAImage LoadTga(std::istream &stream, TGAOptions options) {
+			TGALoaderListener listener;
+			TGAImage resultImage = LoadTga(stream, &listener, options);
+
+			if (options & GWTGA_RETURN_COLOR_MAP == 0) {
+				// Deallocate memory for color map allocated internally (if user does not request returning of color map)
+				cleanupColorMap(&listener, resultImage);
+			}
+
+			return resultImage;
+		}
+
+		TGAImage LoadTga(std::istream &stream, ITGALoaderListener* listener, TGAOptions options) {
 			// TODO: TGA is little endian. Make sure reading from stream is little endian
 
 			TGAImage resultImage;
@@ -60,6 +91,8 @@ namespace gw {
 
 			resultImage.width = header.imageSpec.width;
 			resultImage.height = header.imageSpec.height;
+			resultImage.xOrigin = header.imageSpec.xOrigin;
+			resultImage.yOrigin = header.imageSpec.yOrigin;
 
 			if (header.colorMapSpec.colorMapLength == 0) {
 				resultImage.bitsPerPixel = header.imageSpec.bitsPerPixel;
@@ -141,9 +174,9 @@ namespace gw {
 					return resultImage;
 				}
 
-				resultImage.colorPaletteBytes = colorMap;
-				resultImage.colorMapLength = header.colorMapSpec.colorMapLength;
-				resultImage.colorPaletteBPP = header.imageSpec.bitsPerPixel;
+				resultImage.colorMap.bytes = colorMap;
+				resultImage.colorMap.length = header.colorMapSpec.colorMapLength;
+				resultImage.colorMap.bitsPerPixel = header.imageSpec.bitsPerPixel;
 
 				size_t size = header.colorMapSpec.colorMapLength * (header.colorMapSpec.colorMapEntrySize / 8);
 				stream.read(colorMap, size);
@@ -227,7 +260,116 @@ namespace gw {
 			return resultImage;
 		}
 
+
+
+
+		TGAError SaveTga(char* fileName, unsigned int width, unsigned int height, unsigned char bitsPerPixel, char* pixels, TGAColorType colorType, TGAImageOrigin origin, unsigned int xOrigin, unsigned int yOrigin) {
+
+			std::ofstream fileStream;
+			fileStream.open(fileName, std::ofstream::out | std::ofstream::app);
+
+			if (fileStream.fail()) {
+				return GWTGA_CANNOT_OPEN_FILE; 
+			}
+
+			SaveTga(fileStream, width, height, bitsPerPixel, pixels, colorType, origin, xOrigin, yOrigin);
+
+			fileStream.close();
+
+			return GWTGA_NONE;
+		}
+
+		TGAError SaveTga(std::ostream &stream, unsigned int width, unsigned int height, unsigned char bitsPerPixel, char* pixels, TGAColorType colorType, TGAImageOrigin origin, unsigned int xOrigin, unsigned int yOrigin) {
+
+			// Assert height and width and origin coords is 16-bit unsigned int
+			if (width > 0xFFFF || height > 0xFFFF || xOrigin > 0xFFFF || yOrigin > 0xFFFF) {
+				// Invalid image dimensions
+				return GWTGA_INVALID_DATA;
+			}
+
+			if ((bitsPerPixel & 0x07) != 0) {
+				// Bits per pixel has to be divisible by 8
+				return GWTGA_UNSUPPORTED_PIXEL_DEPTH;
+			}
+
+			// Write header
+			TGAHeader header;
+			header.iDLength = 0;
+			header.colorMapType = 0; //< No color map
+
+			if (colorType == GWTGA_RGB) {
+				header.ImageType = 2; //< Uncompressed RGB
+			} else if (colorType == GWTGA_GREYSCALE) {
+				header.ImageType = 3; //< Uncompressed greyscale
+			} else {
+				// Unknown color type provided
+				return GWTGA_INVALID_DATA;
+			}
+
+			// TODO: Support color map
+			header.colorMapSpec.colorMapEntrySize = 0;
+			header.colorMapSpec.colorMapLength = 0;
+			header.colorMapSpec.firstEntryIndex = 0;
+
+			header.imageSpec.xOrigin = xOrigin;
+			header.imageSpec.yOrigin = yOrigin;
+			header.imageSpec.width = width;
+			header.imageSpec.height = height;
+			header.imageSpec.bitsPerPixel = bitsPerPixel;
+
+			switch (origin) {
+			case GWTGA_BOTTOM_LEFT:
+				header.imageSpec.imgDescriptor = 0x00;
+				break;
+			case GWTGA_BOTTOM_RIGHT:
+				header.imageSpec.imgDescriptor = 0x10;
+				break;
+			case GWTGA_TOP_LEFT:
+				header.imageSpec.imgDescriptor = 0x20;
+				break;
+			case GWTGA_TOP_RIGHT:
+				header.imageSpec.imgDescriptor = 0x30;
+				break;
+			default:
+				// Unknown origin provided
+				return GWTGA_INVALID_DATA;
+			}
+
+			stream.write((char*)&header.iDLength, sizeof(header.iDLength));
+			stream.write((char*)&header.colorMapType, sizeof(header.colorMapType));
+			stream.write((char*)&header.ImageType, sizeof(header.ImageType));
+			stream.write((char*)&header.colorMapSpec.firstEntryIndex, sizeof(header.colorMapSpec.firstEntryIndex));
+			stream.write((char*)&header.colorMapSpec.colorMapLength, sizeof(header.colorMapSpec.colorMapLength));
+			stream.write((char*)&header.colorMapSpec.colorMapEntrySize, sizeof(header.colorMapSpec.colorMapEntrySize));
+			stream.write((char*)&header.imageSpec.xOrigin, sizeof(header.imageSpec.xOrigin));
+			stream.write((char*)&header.imageSpec.yOrigin, sizeof(header.imageSpec.yOrigin));
+			stream.write((char*)&header.imageSpec.width, sizeof(header.imageSpec.width));
+			stream.write((char*)&header.imageSpec.height, sizeof(header.imageSpec.height));
+			stream.write((char*)&header.imageSpec.bitsPerPixel, sizeof(header.imageSpec.bitsPerPixel));
+			stream.write((char*)&header.imageSpec.imgDescriptor, sizeof(header.imageSpec.imgDescriptor));
+
+			stream.write(pixels, width * height * (bitsPerPixel >> 3));
+
+			if (stream.fail()) {
+				return GWTGA_IO_ERROR;
+			}
+
+			return GWTGA_NONE;
+		}
+
 		namespace details {
+
+			char* TGALoaderListener::operator()(const unsigned int &bitsPerPixel, const unsigned int &width, const unsigned int &height, TGAMemoryType mType) {						
+				if (mType == GWTGA_IMAGE_DATA) {
+					return new char[(bitsPerPixel / 8) * (height * width)];
+				} else {
+					return new char[(bitsPerPixel / 8) * (height * width)];
+				}
+			}
+
+			void TGALoaderListener::release(char* bytes) {
+				if (bytes != NULL) delete[] bytes;
+			}
 
 			void fetchPixelUncompressed(void* target, void* input, size_t bytesPerInputPixel, char* colorMap, size_t bytesPerOutputPixel) { 
 				memcpy(target, input, bytesPerInputPixel);
@@ -332,6 +474,16 @@ namespace gw {
 				}
 
 				return true;
+			}
+
+			void cleanupColorMap(TGALoaderListener* listener, TGAImage &image) {
+				if (image.colorMap.bytes != NULL) {
+					listener->release(image.colorMap.bytes);
+
+					image.colorMap.bitsPerPixel = 0;
+					image.colorMap.length = 0;
+					image.colorMap.bytes = NULL;
+				}
 			}
 
 		}

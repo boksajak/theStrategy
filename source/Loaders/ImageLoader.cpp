@@ -62,9 +62,9 @@ namespace gw {
 			// TODO: only tga support so far
 			if (true) // if TGA
 			{
-				tga::TGAImage tgaImage = tga::LoadTgaFromFile((char*) fileName, &tgaLoaderListener);
+				tga::TGAImage tgaImage = tga::LoadTga((char*) fileName, &tgaLoaderListener);
 
-				if (tgaImage.error != tga::GWTGA_NONE) {
+				if (tgaImage.hasError()) {
 
 					// TODO: Error reporting
 					TRACE_ERROR("Error while loading image." << std::cout);
