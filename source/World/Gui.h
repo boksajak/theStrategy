@@ -10,7 +10,10 @@ namespace gw {
 
 		bool Initialize(Renderer &renderer);
 
-		void Tick(Renderer &renderer, Input &input);
+		void Update(Input &input);
+		void Render(Renderer &renderer);
+
+		static void FrameStart();
 
 	private:
 		size_t inactiveTexID;

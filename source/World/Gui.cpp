@@ -37,14 +37,23 @@ namespace gw {
 		return true;
 	}
 
-	void GUI::Tick(Renderer &renderer, Input &input) {
+	void GUI::Update(Input &input) {
+
+		// Render Buttons
+		okBtn.Update(input);
+	}
+
+	void GUI::Render(Renderer &renderer) {
 
 		// Render GUI
 		renderer.RenderBillboard(inactiveTexID, glm::vec2(-1.0f, -1.0f), glm::vec2(2.0f, 2.0f), glm::vec2(0), glm::vec2(1), 0, -0.5f);  
 
 		// Render Buttons
-		okBtn.Tick(renderer, input);
+		okBtn.Render(renderer);
 	}
 
+	void GUI::FrameStart() {
+		Button::FrameStart();
+	}
 
 }

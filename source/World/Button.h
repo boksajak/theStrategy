@@ -5,6 +5,12 @@
 
 namespace gw {
 
+	struct ButtonSharedState {
+		ButtonSharedState() : hitFound(false) {}
+
+		bool	hitFound;
+	};
+
 	class Button {
 	public:
 
@@ -12,7 +18,10 @@ namespace gw {
 
 		bool Initialize(size_t upTexID, size_t overTexID, size_t downTexID, AABB2D region);
 
-		void Tick(Renderer &renderer, Input &input);
+		void Update(Input &input);
+		void Render(Renderer &renderer);
+
+		static void FrameStart();
 
 	private:
 		size_t upTexID;
@@ -27,5 +36,7 @@ namespace gw {
 			GW_BTNSTATE_DOWN,
 			GW_BTNSTATE_OVER
 		} btnState;
+
+		static ButtonSharedState sharedState;
 	};
 }

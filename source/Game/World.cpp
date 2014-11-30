@@ -17,6 +17,8 @@ namespace gw {
 	}
 
 	void World::Tick(Renderer &renderer, Input &input){
-		gui.Tick(renderer, input);
+		gui.FrameStart();
+		gui.Update(input);
+		gui.Render(renderer);
 	}
 }

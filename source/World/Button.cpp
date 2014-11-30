@@ -4,6 +4,8 @@
 
 namespace gw {
 
+	ButtonSharedState Button::sharedState;
+
 	bool Button::Initialize(size_t upTexID, size_t overTexID, size_t downTexID, AABB2D region) {
 		this->upTexID = upTexID;
 		this->overTexID = overTexID;
@@ -13,14 +15,15 @@ namespace gw {
 		return true;
 	}
 
-	void Button::Tick(Renderer &renderer, Input &input) {
+	void Button::Update(Input &input) {
+		if (sharedState.hitFound) return;
 
 		// TODO: solve different coordinates systems for textures, screen and mouse problem
 		float x = input.state.mouse.position.x * 2.0f - 1.0f;
 		float y = -(input.state.mouse.position.y * 2.0f - 1.0f);
 
 		if (BoxIntersect(glm::vec2(x, y), region)) {
-			// TODO: Assume only one button active at once - do not test other buttons
+			sharedState.hitFound = true;
 
 			if (input.state.mouse.leftDown) {
 				btnState = GW_BTNSTATE_DOWN;
@@ -35,8 +38,9 @@ namespace gw {
 		} else {
 			btnState = GW_BTNSTATE_UP;
 		}
+	}
 
-
+	void Button::Render(Renderer &renderer) {
 
 		switch (btnState) {
 		case GW_BTNSTATE_UP:
@@ -53,5 +57,9 @@ namespace gw {
 		default:
 			assert(false); // Something went very wrong
 		}
+	}
+
+	void Button::FrameStart() {
+		sharedState.hitFound = false;
 	}
 }
