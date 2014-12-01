@@ -12,7 +12,7 @@ namespace gw {
 		Image img;
 
 		// Load inactive texture
-		img = loaders::loadImage("assets/mandrill_bw.tga", true);
+		img = loaders::loadImage("assets/gui_bw.tga", true);
 		
 		inactiveTexID = renderer.UploadTexture(img.bytes, img.width, img.height, img.bitsPerPixel);
 		if (inactiveTexID == -1) return false;
@@ -32,7 +32,8 @@ namespace gw {
 		// -----------------------------------------------------------
 		//  Initialize buttons
 		// -----------------------------------------------------------
-		okBtn.Initialize(inactiveTexID, overTexID, activeTexID, AABB2D(glm::vec2(0.1f), glm::vec2(0.4f)));
+		okAction = OKButtonAction("OK Clicked!");
+		okBtn.Initialize(inactiveTexID, overTexID, activeTexID, AABB2D(glm::vec2(0.1f), glm::vec2(0.4f)), &okAction);
 
 		return true;
 	}

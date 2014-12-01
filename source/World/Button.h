@@ -11,12 +11,17 @@ namespace gw {
 		bool	hitFound;
 	};
 
+	class ButtonAction {
+	public:
+		virtual void operator()() = 0;
+	};
+
 	class Button {
 	public:
 
 		Button() : upTexID(-1), overTexID(-1), downTexID(-1), btnState(GW_BTNSTATE_UP) {}
 
-		bool Initialize(size_t upTexID, size_t overTexID, size_t downTexID, AABB2D region);
+		bool Initialize(size_t upTexID, size_t overTexID, size_t downTexID, AABB2D region, ButtonAction* action);
 
 		void Update(Input &input);
 		void Render(Renderer &renderer);
@@ -36,6 +41,8 @@ namespace gw {
 			GW_BTNSTATE_DOWN,
 			GW_BTNSTATE_OVER
 		} btnState;
+
+		ButtonAction* action;
 
 		static ButtonSharedState sharedState;
 	};

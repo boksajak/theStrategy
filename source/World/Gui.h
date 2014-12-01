@@ -5,6 +5,21 @@
 
 namespace gw {
 
+	class OKButtonAction : public ButtonAction {
+	public:
+
+		OKButtonAction() : msg(NULL) {}
+		OKButtonAction(char* msg) : msg(msg) {}
+
+		void operator()() {
+			if (msg != NULL) TRACE_WARNING(msg << std::endl);
+		}
+
+	private:
+
+		char* msg;
+	};
+
 	class GUI {
 	public:
 
@@ -21,5 +36,6 @@ namespace gw {
 		size_t overTexID;
 		
 		Button okBtn;
+		OKButtonAction okAction;
 	};
 }

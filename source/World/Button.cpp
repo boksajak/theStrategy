@@ -6,10 +6,11 @@ namespace gw {
 
 	ButtonSharedState Button::sharedState;
 
-	bool Button::Initialize(size_t upTexID, size_t overTexID, size_t downTexID, AABB2D region) {
+	bool Button::Initialize(size_t upTexID, size_t overTexID, size_t downTexID, AABB2D region, ButtonAction* action) {
 		this->upTexID = upTexID;
 		this->overTexID = overTexID;
 		this->downTexID = downTexID;
+		this->action = action;
 
 		this->region = region;
 		return true;
@@ -31,8 +32,9 @@ namespace gw {
 				btnState = GW_BTNSTATE_OVER;
 			}
 
-			if (input.state.mouse.leftDown) {
-				// TODO: Fire button event
+			// Fire action
+			if (input.state.mouse.leftClick) {
+				(*action)();
 			}
 
 		} else {
