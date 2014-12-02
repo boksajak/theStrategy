@@ -11,11 +11,16 @@ out BillboardData {
 		vec2 bottomRightUV;
 } billboardData; 
 
+// matrix mapping coordinates from [0;1] to [-1; -1] and inverts Y axis
+mat3 transformationMatrix = mat3( 2, 0, 0, 
+                                  0, -2, 0, 
+					              -1, -1,  1);
+
 void main(){
-    billboardData.size = size;
+    billboardData.size = size * 2.0f;
     billboardData.topLeftUV = topLeftUV;
     billboardData.bottomRightUV = bottomRightUV;
 // TODO: Make sure that screenCoords is position of top left corner...
 // And also whether z follows "(less is closer to viewer)"
-    gl_Position = vec4(screenCoords, 1);
+    gl_Position = vec4((transformationMatrix * vec3(screenCoords.xy, 1)).xy, screenCoords.z, 1);
 }

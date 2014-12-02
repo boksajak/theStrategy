@@ -47,7 +47,7 @@ namespace gw {
 	void GUI::Render(Renderer &renderer) {
 
 		// Render GUI
-		renderer.RenderBillboard(inactiveTexID, glm::vec2(-1.0f, -1.0f), glm::vec2(2.0f, 2.0f), glm::vec2(0), glm::vec2(1), 0, -0.5f);  
+		renderer.RenderBillboard(inactiveTexID, glm::vec2(0.2f, 0.2f), glm::vec2(0.5f, 0.5f), glm::vec2(0), glm::vec2(1), 0, -0.5f);  
 
 		// Render Buttons
 		okBtn.Render(renderer);
