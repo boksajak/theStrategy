@@ -7,5 +7,4 @@ out vec4 outputColor;
 
 void main(){    
     outputColor = texture(bbTexture, TexCoord).rgba;
-	//outputColor = vec4(1, 1, 1, 1);
 }
