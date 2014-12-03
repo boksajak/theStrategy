@@ -19,11 +19,7 @@ namespace gw {
 	void Button::Update(Input &input) {
 		if (sharedState.hitFound) return;
 
-		// TODO: solve different coordinates systems for textures, screen and mouse problem
-		float x = input.state.mouse.position.x * 2.0f - 1.0f;
-		float y = -(input.state.mouse.position.y * 2.0f - 1.0f);
-
-		if (BoxIntersect(glm::vec2(x, y), region)) {
+		if (BoxIntersect(input.state.mouse.position, region)) {
 			sharedState.hitFound = true;
 
 			if (input.state.mouse.leftDown) {

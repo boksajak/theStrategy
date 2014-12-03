@@ -12,7 +12,7 @@ namespace gw {
 		Image img;
 
 		// Load inactive texture
-		img = loaders::loadImage("assets/gui_bw.tga", true);
+		img = loaders::loadImage("assets/mandrill_bw.tga", true);
 		
 		inactiveTexID = renderer.UploadTexture(img.bytes, img.width, img.height, img.bitsPerPixel);
 		if (inactiveTexID == -1) return false;
