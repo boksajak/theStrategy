@@ -2,6 +2,7 @@
 #include "Game\Renderer.h"
 #include "Game\Input.h"
 #include "World\Button.h"
+#include "World\Cursor.h"
 
 namespace gw {
 
@@ -37,5 +38,7 @@ namespace gw {
 		
 		Button okBtn;
 		OKButtonAction okAction;
+
+		Cursor arrowCursor;
 	};
 }

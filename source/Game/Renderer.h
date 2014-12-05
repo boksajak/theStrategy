@@ -80,6 +80,8 @@ namespace gw {
 
 		size_t UploadTexture(char* bytes, size_t width, size_t height, char bitsPerPixel);
 
+		glm::vec2 screenSize;
+
 	private:
 
 		bool InitializeBillboards();

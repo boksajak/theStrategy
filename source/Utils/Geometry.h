@@ -59,4 +59,11 @@ namespace gw {
 		return _mm_movemask_ps(cmp) == 0xf;
 	}
 
+	inline glm::vec2 normalizedToAbsoulte(const glm::vec2 &normalized, const glm::vec2 &screenSize) {
+		return screenSize * normalized;
+	}
+
+	inline glm::vec2 absoulteToNormalized(const glm::vec2 &absolute, const glm::vec2 &screenSize) {
+		return absolute / screenSize;
+	}
 }

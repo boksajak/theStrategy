@@ -7,6 +7,8 @@ namespace gw {
 
 	bool Renderer::Initialize(int windowWidth, int windowHeight) {
 
+		this->screenSize = glm::vec2(windowWidth, windowHeight);
+
 		// -------------------------------------------
 		// Initialize SDL 
 		// -------------------------------------------
@@ -82,6 +84,8 @@ namespace gw {
 		// GL Settings
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_CULL_FACE);   
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable( GL_BLEND );
 
 		glClearColor(1.0f, 1.0f, 0.6f, 1.0f);
 
