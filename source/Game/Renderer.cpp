@@ -117,8 +117,7 @@ namespace gw {
 		glUseProgram(billboardShader.programId);
 
 		// TODO: Maybe insertion sort (or shell sort) will be faster than priority queue for our purpose
-		// Render opaque objects front to back to minimize overdraw
-		// Render transparent objects back to front
+		// Render transparent objects back to front and opaque objects front to back to minimize overdraw - in this matter are billboards already sorted
 		while (!billboards.empty()) {
 			const GLBillboard &billboard = billboards.top();
 
@@ -137,20 +136,21 @@ namespace gw {
 			billboards.pop();
 		}
 
+
 		glBindVertexArray(0);
 
 		// Swap buffers
 		SDL_GL_SwapWindow(sdlWindow);
 	}
 
-	void Renderer::RenderBillboard(size_t texIdx, glm::vec2 screenCoords, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z) {
+	void Renderer::RenderBillboard(size_t texIdx, glm::vec2 screenCoords, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z, bool transparent) {
 
 		// Culling
 		static const glm::vec4 screenBox(-1.0f, -1.0f, 1.0f, 1.0f);
 		if (!BoxIntersect(glm::vec4(screenCoords.x, screenCoords.y, screenCoords.x + size.x, screenCoords.y + size.y), screenBox)) return; 
 
 		// Put object into render queue
- 		billboards.push(GLBillboard(textures[texIdx], screenCoords, size, uvTopLeft, uvBottomRight, rotation, z)); 
+		billboards.push(GLBillboard(textures[texIdx], screenCoords, size, uvTopLeft, uvBottomRight, rotation, z, transparent)); 
 	}
 
 	size_t Renderer::UploadTexture(char* bytes, size_t width, size_t height, char bitsPerPixel) {
