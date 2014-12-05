@@ -40,16 +40,12 @@ namespace gw {
 		// -----------------------------------------------------------
 		//  Initialize cursors
 		// -----------------------------------------------------------
-		img = loaders::loadImage("assets/cursor_mouse.tga", true);
-		size_t arrrowCursorTexID = renderer.UploadTexture(img.bytes, img.width, img.height, img.bitsPerPixel);
-		if (overTexID == -1) return false;
+		img = loaders::loadImage("assets/cursor_mouse.tga", false);
+		Image imgDown = loaders::loadImage("assets/cursor_mouse_down.tga", false);
 	
-		if (!arrowCursor.Initialize(arrrowCursorTexID, arrrowCursorTexID, glm::vec2(img.width, img.height), renderer.screenSize)) {
+		if (!arrowCursor.Initialize(img, imgDown, glm::vec2(img.width, img.height), renderer.screenSize)) {
 			return false;
 		}
-
-		// Hide system cursor
-		SDL_ShowCursor(SDL_DISABLE);
 
 		return true;
 	}
