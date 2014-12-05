@@ -12,15 +12,16 @@
 namespace gw {
 
 	struct GLTexture {
-		GLTexture(GLuint textureId) : textureId(textureId) {}
+		GLTexture(GLuint textureId, bool hasAlpha) : textureId(textureId), hasAlpha(hasAlpha) {}
 
 		GLuint textureId;
+		bool hasAlpha;
 	};
 	
 	struct GLBillboard {
 
-		GLBillboard(GLTexture texture, glm::vec2 topLeftCoord, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z, bool transparent) : texture(texture),
-			topLeftCoord(topLeftCoord), size(size), uvTopLeft(uvTopLeft), uvBottomRight(uvBottomRight), rotation(rotation), z(z), transparent(transparent) {}
+		GLBillboard(GLTexture texture, glm::vec2 topLeftCoord, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z) : texture(texture),
+			topLeftCoord(topLeftCoord), size(size), uvTopLeft(uvTopLeft), uvBottomRight(uvBottomRight), rotation(rotation), z(z) {}
 
 		// texture to use
 		GLTexture texture;
@@ -43,15 +44,13 @@ namespace gw {
 		// depth (less is closer to viewer) 
 		float z;
 
-		// when true, will be rendered after opaque objects (sorted back to front)
-		bool transparent;
 	};
 
 	// Comparer for Billboards (opaque first - back to front, transparent last - back to front) 
 	inline bool operator<(const GLBillboard& a, const GLBillboard& b){ 
 
-		if (a.transparent == b.transparent) {
-			if (a.transparent) {
+		if (a.texture.hasAlpha == b.texture.hasAlpha) {
+			if (a.texture.hasAlpha) {
 				return a.z < b.z; // Render transparent back to front
 			} else {
 				return a.z > b.z; // Render opaque front to back
@@ -59,7 +58,7 @@ namespace gw {
 		}
 
 		// Put transparent after opaque
-		return a.transparent;
+		return a.texture.hasAlpha;
 	}
 
 	struct BillboardShader {
@@ -91,7 +90,7 @@ namespace gw {
 		void Destroy();
 
 		void Render();
-		void RenderBillboard(size_t texIdx, glm::vec2 screenCoords, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z, bool transparent);
+		void RenderBillboard(size_t texIdx, glm::vec2 screenCoords, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z);
 
 		size_t UploadTexture(char* bytes, size_t width, size_t height, char bitsPerPixel);
 

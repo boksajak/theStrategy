@@ -143,14 +143,14 @@ namespace gw {
 		SDL_GL_SwapWindow(sdlWindow);
 	}
 
-	void Renderer::RenderBillboard(size_t texIdx, glm::vec2 screenCoords, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z, bool transparent) {
+	void Renderer::RenderBillboard(size_t texIdx, glm::vec2 screenCoords, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z) {
 
 		// Culling
 		static const glm::vec4 screenBox(-1.0f, -1.0f, 1.0f, 1.0f);
 		if (!BoxIntersect(glm::vec4(screenCoords.x, screenCoords.y, screenCoords.x + size.x, screenCoords.y + size.y), screenBox)) return; 
 
 		// Put object into render queue
-		billboards.push(GLBillboard(textures[texIdx], screenCoords, size, uvTopLeft, uvBottomRight, rotation, z, transparent)); 
+		billboards.push(GLBillboard(textures[texIdx], screenCoords, size, uvTopLeft, uvBottomRight, rotation, z)); 
 	}
 
 	size_t Renderer::UploadTexture(char* bytes, size_t width, size_t height, char bitsPerPixel) {
@@ -159,6 +159,7 @@ namespace gw {
 
 		GLenum format;
 		GLenum type;
+		bool hasAlpha = false;
 
 		switch(bitsPerPixel) {
 		case 8:
@@ -168,6 +169,7 @@ namespace gw {
 		case 16:
 			format = GL_BGRA;
 			type = GL_UNSIGNED_SHORT_1_5_5_5_REV;
+			hasAlpha = true;
 			break;
 		case 24:
 			format = GL_BGR;
@@ -176,6 +178,7 @@ namespace gw {
 		case 32:
 			format = GL_BGRA;
 			type = GL_UNSIGNED_BYTE;
+			hasAlpha = true;
 			break;
 		case 96:
 			format = GL_BGR;
@@ -210,7 +213,7 @@ namespace gw {
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, std::min(4.0f, fLargest)); // we want level 4 if possible
 		}
 
-		textures.push_back(GLTexture(textureId));
+		textures.push_back(GLTexture(textureId, hasAlpha));
 
 		return textures.size() - 1;
 	}

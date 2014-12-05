@@ -46,11 +46,11 @@ namespace gw {
 			break;
 		case GW_BTNSTATE_DOWN:
 			// TODO: Z depth
-			renderer.RenderBillboard(downTexID, region.minPoint, region.size(), region.minPoint, region.maxPoint, 0, 50.0f, false);  
+			renderer.RenderBillboard(downTexID, region.minPoint, region.size(), region.minPoint, region.maxPoint, 0, 50.0f);  
 			break;
 		case GW_BTNSTATE_OVER:
 			// TODO: Z depth
-			renderer.RenderBillboard(overTexID, region.minPoint, region.size(), region.minPoint, region.maxPoint, 0, 50.0f, false);  
+			renderer.RenderBillboard(overTexID, region.minPoint, region.size(), region.minPoint, region.maxPoint, 0, 50.0f);  
 			break;
 		default:
 			assert(false); // Something went very wrong

@@ -27,11 +27,11 @@ namespace gw {
 		switch (cursorState) {
 		case GW_CRSRSTATE_UP:
 			// TODO: Z depth
-			renderer.RenderBillboard(downTexID, position, size, glm::vec2(0), glm::vec2(1), 0, 10.0f, true);  
+			renderer.RenderBillboard(downTexID, position, size, glm::vec2(0), glm::vec2(1), 0, 10.0f);  
 			break;
 		case GW_CRSRSTATE_DOWN:
 			// TODO: Z depth
-			renderer.RenderBillboard(downTexID, position, size, glm::vec2(0), glm::vec2(1), 0, 10.0f, true);  
+			renderer.RenderBillboard(downTexID, position, size, glm::vec2(0), glm::vec2(1), 0, 10.0f);  
 			break;
 		default:
 			assert(false); // Something went very wrong
