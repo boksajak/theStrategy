@@ -35,6 +35,7 @@ namespace gw {
 		size_t inactiveTexID;
 		size_t activeTexID;
 		size_t overTexID;
+		size_t stencilTexID;
 		
 		Button okBtn;
 		OKButtonAction okAction;
