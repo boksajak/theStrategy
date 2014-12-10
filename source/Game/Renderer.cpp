@@ -26,6 +26,9 @@ namespace gw {
 		// 24-bit Z buffer
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
+		// 8-bit Stencil buffer
+		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
 		// Get screen resolution
 		SDL_DisplayMode displayMode;
 		if (SDL_GetDesktopDisplayMode(0, &displayMode) != 0) {
@@ -57,7 +60,6 @@ namespace gw {
 		consoleInst.move(left + windowWidth + borderWidth, top - borderHeight - captionHeight, 550, windowHeight);
 #endif
 
-
 		// -------------------------------------------
 		// Initialize OpenGL 
 		// -------------------------------------------
@@ -83,6 +85,7 @@ namespace gw {
 
 		// GL Settings
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_STENCIL_TEST);
 		glEnable(GL_CULL_FACE);   
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable( GL_BLEND );
@@ -94,11 +97,19 @@ namespace gw {
 			return false;
 		}
 
+		// No stencil mask active
+		activeStencilMaskId = -1;
+
 		TRACE_RENDERER("Initialized OpenGL Renderer!" << std::endl);
 		return true;
 	}
 
 	void Renderer::Destroy(){
+
+		// TODO: Destroy GL objects
+		glUseProgram(0);
+
+		glDeleteVertexArrays(1, &vaoBillboard);
 
 		SDL_GL_DeleteContext(sdlGLContext);
 		SDL_DestroyWindow(sdlWindow);
@@ -107,19 +118,37 @@ namespace gw {
 
 	void Renderer::Render() {
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+		// Reset stencil mask
+		activeStencilMaskId = -1;
+		glStencilFunc(GL_ALWAYS, 0, 0); 
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT/* | GL_STENCIL_BUFFER_BIT*/);
 		// --------------------------------------------------------------------
 		//    Render billboards
 		// --------------------------------------------------------------------
-
+		
 		glBindVertexArray(vaoBillboard);
 		glUseProgram(billboardShader.programId);
+
+		glUniformSubroutinesuiv( GL_FRAGMENT_SHADER, 1, &billboardShader.normalPassLoc);
 
 		// TODO: Maybe insertion sort (or shell sort) will be faster than priority queue for our purpose
 		// Render transparent objects back to front and opaque objects front to back to minimize overdraw - in this matter are billboards already sorted
 		while (!billboards.empty()) {
 			const GLBillboard &billboard = billboards.top();
+
+			if (activeStencilMaskId != billboard.stencilMaskId) {
+
+				activeStencilMaskId = billboard.stencilMaskId;
+
+				if (activeStencilMaskId == -1) {
+					// Deactivate stencil mask
+					glStencilFunc(GL_ALWAYS, 0, 0); 
+				} else {
+					// Activate stencil mask - TODO: pick mask bit according to selected stencil mask
+					glStencilFunc(GL_EQUAL, 1, 0xFF); // Pass test if stencil value is 1
+				}
+			}
 
 			// Render billboard
 			glUniform3fv(billboardShader.screenCoordsLoc, 1, glm::value_ptr(glm::vec3(billboard.topLeftCoord.x, billboard.topLeftCoord.y, billboard.z)));
@@ -136,8 +165,10 @@ namespace gw {
 			billboards.pop();
 		}
 
-
 		glBindVertexArray(0);
+
+		// Reset stencil mask
+		activeStencilMaskId = -1;
 
 		// Swap buffers
 		SDL_GL_SwapWindow(sdlWindow);
@@ -150,7 +181,11 @@ namespace gw {
 		if (!BoxIntersect(glm::vec4(screenCoords.x, screenCoords.y, screenCoords.x + size.x, screenCoords.y + size.y), screenBox)) return; 
 
 		// Put object into render queue
-		billboards.push(GLBillboard(textures[texIdx], screenCoords, size, uvTopLeft, uvBottomRight, rotation, z)); 
+		billboards.push(GLBillboard(textures[texIdx], screenCoords, size, uvTopLeft, uvBottomRight, rotation, z, activeStencilMaskId)); 
+	}
+
+	void Renderer::UseStencilMask(size_t maskId) {
+		activeStencilMaskId = maskId;
 	}
 
 	size_t Renderer::UploadTexture(char* bytes, size_t width, size_t height, char bitsPerPixel) {
@@ -218,6 +253,50 @@ namespace gw {
 		return textures.size() - 1;
 	}
 
+	size_t Renderer::UploadStencilMask(size_t maskTexId) {
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// Setup stencil operations
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+		// Write to stencil buffer (mask 0xFF)
+		glStencilMask(0xFF); 
+
+		// Turn off rendering to color and depth buffer
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		glDepthMask(GL_FALSE);
+
+		// Render stencil texture as screen-fitted billboard
+		glBindVertexArray(vaoBillboard);
+		glUseProgram(billboardShader.programId);
+
+		glUniformSubroutinesuiv( GL_FRAGMENT_SHADER, 1, &billboardShader.stencilPassLoc);
+
+		glUniform3fv(billboardShader.screenCoordsLoc, 1, glm::value_ptr(glm::vec3(0, 0, 1)));
+		glUniform2fv(billboardShader.sizeLoc, 1, glm::value_ptr(glm::vec2(1.0f)));
+		glUniform2fv(billboardShader.topLeftUVLoc, 1, glm::value_ptr(glm::vec2(0, 0)));
+		glUniform2fv(billboardShader.bottomRightUVLoc, 1, glm::value_ptr(glm::vec2(1, 1)));
+
+		glActiveTexture(GL_TEXTURE10);
+		glBindTexture(GL_TEXTURE_2D, textures[maskTexId].textureId);
+		glUniform1i(billboardShader.textureLoc, 10);
+
+		glDrawArrays(GL_POINTS, 0, 1);
+		glBindVertexArray(0);
+
+		// Turn on rendering to color and depth buffer
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glDepthMask(GL_TRUE);
+
+		// Do not write to stencil buffer anymore
+		glStencilMask(0);
+
+		masks.push_back(GLMask(maskTexId));
+		return masks.size() - 1;
+	}
+
 	bool Renderer::InitializeBillboards() {
 
 		// Load shader
@@ -231,7 +310,11 @@ namespace gw {
 		billboardShader.topLeftUVLoc = glGetUniformLocation(billboardShader.programId, "topLeftUV");
 		billboardShader.bottomRightUVLoc = glGetUniformLocation(billboardShader.programId, "bottomRightUV");
 		billboardShader.textureLoc = glGetUniformLocation(billboardShader.programId, "bbTexture");
-		
+
+		// Render passes
+		billboardShader.stencilPassLoc = glGetSubroutineIndex(billboardShader.programId, GL_FRAGMENT_SHADER, "StencilPass");    
+		billboardShader.normalPassLoc = glGetSubroutineIndex(billboardShader.programId, GL_FRAGMENT_SHADER, "NormalPass");
+
 		// ----------------------------------------------------------------
 		// ******** Initialize VBO for drawing model *********
 		// ----------------------------------------------------------------

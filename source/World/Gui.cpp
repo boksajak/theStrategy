@@ -30,10 +30,12 @@ namespace gw {
 		if (overTexID == -1) return false;
 	
 		// Load GUI stencil
-		img = loaders::loadImage("assets/gui_stencil.tga", true);
+		img = loaders::loadImage("assets/gui_stencil_inv.tga", true);
 		
 		stencilTexID = renderer.UploadTexture(img.bytes, img.width, img.height, img.bitsPerPixel);
 		if (stencilTexID == -1) return false;
+		stencilMaskID = renderer.UploadStencilMask(stencilTexID);
+		if (stencilMaskID == -1) return false;
 
 		// -----------------------------------------------------------
 		//  Initialize buttons
@@ -52,6 +54,14 @@ namespace gw {
 		if (!arrowCursor.Initialize(img, imgDown, glm::vec2(img.width, img.height), renderer.screenSize)) {
 			return false;
 		}
+
+		// -----------------------------------------------------------
+		//  Initialize map
+		// -----------------------------------------------------------
+		img = loaders::loadImage("assets/map.tga", true);
+		
+		mapTexID = renderer.UploadTexture(img.bytes, img.width, img.height, img.bitsPerPixel);
+		if (mapTexID == -1) return false;
 
 		return true;
 	}
@@ -79,6 +89,11 @@ namespace gw {
 
 		// Render Cursor
 		arrowCursor.Render(renderer);
+
+		// Render Map
+		renderer.UseStencilMask(stencilMaskID);
+		renderer.RenderBillboard(mapTexID, glm::vec2(0.0f), glm::vec2(1.f), glm::vec2(0), glm::vec2(1), 0, 20.0f);  
+		
 	}
 
 	void GUI::FrameStart() {

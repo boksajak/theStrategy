@@ -20,8 +20,8 @@ namespace gw {
 	
 	struct GLBillboard {
 
-		GLBillboard(GLTexture texture, glm::vec2 topLeftCoord, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z) : texture(texture),
-			topLeftCoord(topLeftCoord), size(size), uvTopLeft(uvTopLeft), uvBottomRight(uvBottomRight), rotation(rotation), z(z) {}
+		GLBillboard(GLTexture texture, glm::vec2 topLeftCoord, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z, size_t stencilMaskId) : texture(texture),
+			topLeftCoord(topLeftCoord), size(size), uvTopLeft(uvTopLeft), uvBottomRight(uvBottomRight), rotation(rotation), z(z), stencilMaskId(stencilMaskId) {}
 
 		// texture to use
 		GLTexture texture;
@@ -44,12 +44,23 @@ namespace gw {
 		// depth (less is closer to viewer) 
 		float z;
 
+		// stencil mask to use
+		size_t stencilMaskId;
+
+	};
+
+	struct GLMask {
+		GLMask(GLuint textureId) : textureId(textureId) {}
+		GLuint textureId;
 	};
 
 	// Comparer for Billboards (opaque first - back to front, transparent last - back to front) 
 	inline bool operator<(const GLBillboard& a, const GLBillboard& b){ 
 
 		if (a.texture.hasAlpha == b.texture.hasAlpha) {
+
+			// TODO: group same stencil masks together
+
 			if (a.texture.hasAlpha) {
 				return a.z < b.z; // Render transparent back to front
 			} else {
@@ -77,8 +88,11 @@ namespace gw {
 		GLuint sizeLoc;
 		GLuint topLeftUVLoc;
 		GLuint bottomRightUVLoc;
-
+		
 		GLuint textureLoc;
+
+		GLuint stencilPassLoc;
+		GLuint normalPassLoc;
 	};
 
 	class Renderer {
@@ -92,7 +106,10 @@ namespace gw {
 		void Render();
 		void RenderBillboard(size_t texIdx, glm::vec2 screenCoords, glm::vec2 size, glm::vec2 uvTopLeft, glm::vec2 uvBottomRight, float rotation, float z);
 
+		void UseStencilMask(size_t maskId);
+
 		size_t UploadTexture(char* bytes, size_t width, size_t height, char bitsPerPixel);
+		size_t UploadStencilMask(size_t maskTexId);
 
 		glm::vec2 screenSize;
 
@@ -106,8 +123,10 @@ namespace gw {
 
 		// Renderer stuff
 		std::vector<GLTexture> textures;
+		std::vector<GLMask> masks;
 		std::priority_queue<GLBillboard> billboards;
-		
+		size_t activeStencilMaskId;
+
 		// SDL Stuff
 		SDL_Window* sdlWindow;
 		SDL_GLContext sdlGLContext;
