@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <malloc.h>
 #include <memory.h>
-#include <climits>
+#include <limits>
 #include <vector>
 
 #include <algorithm>

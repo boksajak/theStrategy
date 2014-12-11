@@ -58,9 +58,7 @@ namespace gw {
 	inline bool operator<(const GLBillboard& a, const GLBillboard& b){ 
 
 		if (a.texture.hasAlpha == b.texture.hasAlpha) {
-
-			// TODO: group same stencil masks together
-
+			
 			if (a.texture.hasAlpha) {
 				return a.z < b.z; // Render transparent back to front
 			} else {

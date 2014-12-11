@@ -1,6 +1,5 @@
 #include "common.h"
 #include "Cursor.h"
-#include "Loaders\ImageLoader.h"
 
 namespace gw {
 

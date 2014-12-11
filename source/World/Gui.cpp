@@ -63,6 +63,8 @@ namespace gw {
 		mapTexID = renderer.UploadTexture(img.bytes, img.width, img.height, img.bitsPerPixel);
 		if (mapTexID == -1) return false;
 
+		map.Initialize(mapTexID, stencilMaskID, glm::vec2(10), glm::ivec2(128));
+
 		return true;
 	}
 
@@ -77,6 +79,9 @@ namespace gw {
 
 		// Update Cursor
 		arrowCursor.Update(input);
+
+		// Update map
+		map.Update(input);
 	}
 
 	void GUI::Render(Renderer &renderer) {
@@ -91,9 +96,7 @@ namespace gw {
 		arrowCursor.Render(renderer);
 
 		// Render Map
-		renderer.UseStencilMask(stencilMaskID);
-		renderer.RenderBillboard(mapTexID, glm::vec2(0.0f), glm::vec2(1.f), glm::vec2(0), glm::vec2(1), 0, 20.0f);  
-		
+		map.Render(renderer);
 	}
 
 	void GUI::FrameStart() {

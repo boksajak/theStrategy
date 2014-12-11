@@ -3,6 +3,7 @@
 #include "Game\Input.h"
 #include "World\Button.h"
 #include "World\SystemCursor.h"
+#include "World\Map.h"
 
 namespace gw {
 
@@ -41,6 +42,7 @@ namespace gw {
 		
 		Button okBtn;
 		OKButtonAction okAction;
+		Map map;
 
 		SystemCursor arrowCursor;
 	};
