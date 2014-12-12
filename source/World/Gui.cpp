@@ -63,8 +63,8 @@ namespace gw {
 		mapTexID = renderer.UploadTexture(img.bytes, img.width, img.height, img.bitsPerPixel);
 		if (mapTexID == -1) return false;
 
-		map.Initialize(mapTexID, stencilMaskID, glm::vec2(10), glm::ivec2(128));
-
+		map.Initialize(mapTexID, stencilMaskID, glm::vec2(10), glm::ivec2(128), AABB2D(glm::vec2(0.0225282, 0.0200334), glm::vec2(0.98373, 0.721202)));
+		
 		return true;
 	}
 
